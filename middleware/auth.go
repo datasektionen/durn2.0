@@ -5,8 +5,10 @@ import (
 	"net/http"
 )
 
+// Key for user id in context
 const userKey string = "user"
 
+// Middleware for authenticating the client
 func Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
@@ -21,7 +23,20 @@ func Authenticate(next http.Handler) http.Handler {
 	})
 }
 
-func User(r *http.Request) (string, bool) {
-	user, ok := r.Context().Value(userKey).(string)
+// Get the user id from a context
+func User(ctx context.Context) (string, bool) {
+	user, ok := ctx.Value(userKey).(string)
 	return user, ok
+}
+
+// Get the user id from context
+// Panics upon failure
+func MustUser(ctx context.Context) string {
+	user, ok := User(ctx)
+
+	if !ok {
+		panic("User ID is missing from context")
+	}
+
+	return user
 }

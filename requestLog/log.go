@@ -17,6 +17,21 @@ func SetPrefixFn(fn PrefixFn) {
 
 type LogLevel int
 
+func (l LogLevel) ToString() string {
+	switch l {
+	case DEBUG:
+		return "DEBUG"
+	case INFO:
+		return "INFO"
+	case WARNING:
+		return "WARNING"
+	case FATAL:
+		return "FATAL"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 const (
 	DEBUG LogLevel = iota
 	INFO
@@ -47,15 +62,15 @@ func Fatal(req *http.Request, txt string) {
 }
 
 func normal(cutoff LogLevel, req *http.Request, txt string) {
-	if level < cutoff {
+	if cutoff < level {
 		return
 	}
 	prefix := prefixFn(req)
-	log.Printf("%s - %v\n", prefix, txt)
+	log.Printf("%s | %s - %v\n", prefix, cutoff.ToString(), txt)
 }
 
 func fatal(cutoff LogLevel, req *http.Request, txt string) {
-	if level < cutoff {
+	if cutoff < level {
 		return
 	}
 	prefix := prefixFn(req)

@@ -6,8 +6,10 @@ import (
 	"net/http"
 )
 
+// Key for request id in context
 const reqIdKey string = "reqId"
 
+// Middleware for attaching a request id to a request
 func Track(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
@@ -20,7 +22,20 @@ func Track(next http.Handler) http.Handler {
 	})
 }
 
-func ReqId(r *http.Request) (uuid.UUID, bool) {
-	reqId, ok := r.Context().Value(reqIdKey).(uuid.UUID)
+// Get the request ID from a context
+func ReqId(ctx context.Context) (uuid.UUID, bool) {
+	reqId, ok := ctx.Value(reqIdKey).(uuid.UUID)
 	return reqId, ok
+}
+
+// Get the request ID from a context
+// Panic upon failure
+func MustReqId(ctx context.Context) uuid.UUID {
+	reqId, ok := ReqId(ctx)
+
+	if !ok {
+		panic("Request ID is missing from context")
+	}
+
+	return reqId
 }

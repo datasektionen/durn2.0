@@ -1,6 +1,8 @@
 package durn
 
 import (
+	"context"
+	mw "durn2.0/middleware"
 	"errors"
 	"github.com/google/uuid"
 	"sync"
@@ -9,7 +11,7 @@ import (
 var elections = make(map[uuid.UUID]*Election)
 var mutex sync.Mutex
 
-func CreateElection(name string, alternatives []Alternative) {
+func CreateElection(_ context.Context, name string, alternatives []Alternative) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -37,7 +39,25 @@ func GetElections() []Election {
 	return e
 }
 
-func AddEligibleVoters(electionId uuid.UUID, voterIds []string) {
+func GetEligibleVoters(_ context.Context, electionId uuid.UUID) ([]EligibleVoter, error) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	election, ok := elections[electionId]
+	if !ok {
+		return nil, errors.New("election does not exist")
+	}
+
+	voters := make([]EligibleVoter, 0, len(election.EligibleVoters))
+
+	for _, voter := range election.EligibleVoters {
+		voters = append(voters, *voter)
+	}
+
+	return voters, nil
+}
+
+func AddEligibleVoters(_ context.Context, electionId uuid.UUID, voterIds []string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -57,10 +77,9 @@ func AddEligibleVoters(electionId uuid.UUID, voterIds []string) {
 	}
 
 	elections[electionId] = election
-
 }
 
-func CastVote(electionId uuid.UUID, voterId string, alternative Alternative) error {
+func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -73,6 +92,7 @@ func CastVote(electionId uuid.UUID, voterId string, alternative Alternative) err
 		return errors.New("not valid alternative")
 	}
 
+	voterId := mw.MustUser(ctx)
 	voter, ok := election.EligibleVoters[voterId]
 	if !ok {
 		return errors.New("voter does not exist")

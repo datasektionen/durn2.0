@@ -3,6 +3,7 @@ package handler
 import (
 	"durn2.0/durn"
 	rl "durn2.0/requestLog"
+	"durn2.0/util"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -11,19 +12,8 @@ import (
 	"net/http"
 )
 
-func requestError(res http.ResponseWriter, req *http.Request, status int, err error, format string, v ...interface{}) {
-	if err != nil {
-		format = fmt.Sprintf("%s: %v", format, err)
-	}
-
-	desc := fmt.Sprintf(format, v...)
-
-	rl.Warning(req, desc)
-	res.WriteHeader(status)
-}
-
 func NotFound(res http.ResponseWriter, req *http.Request) {
-	requestError(
+	util.RequestError(
 		res, req, http.StatusNotFound, nil,
 		"Not found",
 	)
@@ -43,7 +33,7 @@ func LoginComplete(res http.ResponseWriter, req *http.Request) {
 
 	token, ok := req.URL.Query()["token"]
 	if !ok || len(token) == 0 {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, nil,
 			"Missing token parameter from request",
 		)
@@ -65,7 +55,7 @@ func GetElections(res http.ResponseWriter, req *http.Request) {
 
 	data, err := json.Marshal(elections)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusInternalServerError, err,
 			"Error while marshal election data as JSON",
 		)
@@ -85,7 +75,7 @@ func CreateElection(res http.ResponseWriter, req *http.Request) {
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusInternalServerError, err,
 			"Error while reading request body",
 		)
@@ -95,7 +85,7 @@ func CreateElection(res http.ResponseWriter, req *http.Request) {
 	var data createElectionData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Request body could not be unmarshalled as JSON",
 		)
@@ -112,7 +102,7 @@ func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
 
 	electionIdString, ok := mux.Vars(req)["electionId"]
 	if !ok {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, nil,
 			"Request is missing election ID from path",
 		)
@@ -121,7 +111,7 @@ func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
 
 	electionId, err := uuid.Parse(electionIdString)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Given election ID cannot be parsed as UUID",
 		)
@@ -130,7 +120,7 @@ func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusInternalServerError, err,
 			"Error while reading request body",
 		)
@@ -140,7 +130,7 @@ func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
 	var data addEligibleVotersData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Request body could not be unmarshalled as JSON",
 		)
@@ -153,7 +143,7 @@ func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
 func GetEligibleVoters(res http.ResponseWriter, req *http.Request) {
 	electionIdString, ok := mux.Vars(req)["electionId"]
 	if !ok {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, nil,
 			"Request is missing election ID from path",
 		)
@@ -162,7 +152,7 @@ func GetEligibleVoters(res http.ResponseWriter, req *http.Request) {
 
 	electionId, err := uuid.Parse(electionIdString)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Given election ID cannot be parsed as UUID",
 		)
@@ -173,7 +163,7 @@ func GetEligibleVoters(res http.ResponseWriter, req *http.Request) {
 
 	data, err := json.Marshal(voters)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusInternalServerError, err,
 			"Error while marshal voter data as JSON",
 		)
@@ -192,7 +182,7 @@ func CastVote(res http.ResponseWriter, req *http.Request) {
 
 	electionIdString, ok := mux.Vars(req)["electionId"]
 	if !ok {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, nil,
 			"Request is missing election ID from path",
 		)
@@ -201,7 +191,7 @@ func CastVote(res http.ResponseWriter, req *http.Request) {
 
 	electionId, err := uuid.Parse(electionIdString)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Given election ID cannot be parsed as UUID",
 		)
@@ -210,7 +200,7 @@ func CastVote(res http.ResponseWriter, req *http.Request) {
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusInternalServerError, err,
 			"Error while reading request body",
 		)
@@ -220,7 +210,7 @@ func CastVote(res http.ResponseWriter, req *http.Request) {
 	var data castVoteData
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Request body could not be unmarshalled as JSON",
 		)
@@ -229,7 +219,7 @@ func CastVote(res http.ResponseWriter, req *http.Request) {
 
 	err = durn.CastVote(req.Context(), electionId, data.Alternative)
 	if err != nil {
-		requestError(
+		util.RequestError(
 			res, req, http.StatusBadRequest, err,
 			"Error casting vote",
 		)

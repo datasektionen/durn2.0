@@ -2,6 +2,7 @@ package middleware
 
 import (
 	rl "durn2.0/requestLog"
+	"durn2.0/util"
 	"fmt"
 	"github.com/felixge/httpsnoop"
 	"net/http"
@@ -41,5 +42,17 @@ func ResponseLog(next http.Handler) http.Handler {
 		)
 
 		rl.Info(req, txt)
+	})
+}
+
+// Middleware for logging authenticated user
+func UserLog(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, ok := util.User(req.Context())
+		if ok {
+			rl.Info(req, user)
+		}
+
+		next.ServeHTTP(res, req)
 	})
 }

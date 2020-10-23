@@ -2,7 +2,7 @@ package durn
 
 import (
 	"context"
-	mw "durn2.0/middleware"
+	"durn2.0/util"
 	"errors"
 	"github.com/google/uuid"
 	"sync"
@@ -92,7 +92,7 @@ func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative
 		return errors.New("not valid alternative")
 	}
 
-	voterId := mw.MustUser(ctx)
+	voterId := util.MustUser(ctx)
 	voter, ok := election.EligibleVoters[voterId]
 	if !ok {
 		return errors.New("voter does not exist")

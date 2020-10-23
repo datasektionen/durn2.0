@@ -5,6 +5,7 @@ import (
 	"durn2.0/handler"
 	mw "durn2.0/middleware"
 	rl "durn2.0/requestLog"
+	"durn2.0/util"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -15,13 +16,17 @@ func main() {
 	c := conf.ReadConfiguration()
 
 	rl.SetPrefixFn(func(req *http.Request) string {
-		reqId, ok := mw.ReqId(req.Context())
+		reqId, ok := util.ReqId(req.Context())
 		if ok {
 			return fmt.Sprintf("%s", reqId)
 		} else {
 			return fmt.Sprintf("missing")
 		}
 	})
+	
+	authenticator := mw.AuthenticationMiddleware{
+		ApiKey: c.LoginApiKey,
+	}
 
 	r := mux.NewRouter()
 	r.Use(mw.Track)
@@ -33,7 +38,8 @@ func main() {
 	o.Path("/login-complete").Methods("GET").HandlerFunc(handler.LoginComplete)
 
 	a := r.PathPrefix("/api").Subrouter()
-	a.Use(mw.Authenticate)
+	a.Use(authenticator.Middleware)
+	a.Use(mw.UserLog)
 
 	s := a.PathPrefix("/elections").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetElections)

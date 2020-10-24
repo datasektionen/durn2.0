@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"durn2.0/auth"
 	"durn2.0/conf"
 	"durn2.0/handler"
 	mw "durn2.0/middleware"
@@ -15,8 +17,8 @@ import (
 func main() {
 	c := conf.ReadConfiguration()
 
-	rl.SetPrefixFn(func(req *http.Request) string {
-		reqId, ok := util.ReqId(req.Context())
+	rl.SetPrefixFn(func(ctx context.Context) string {
+		reqId, ok := util.ReqId(ctx)
 		if ok {
 			return fmt.Sprintf("%s", reqId)
 		} else {
@@ -24,7 +26,7 @@ func main() {
 		}
 	})
 	
-	authenticator := mw.AuthenticationMiddleware{
+	authenticator := auth.AuthenticationMiddleware{
 		ApiKey: c.LoginApiKey,
 	}
 
@@ -39,7 +41,6 @@ func main() {
 
 	a := r.PathPrefix("/api").Subrouter()
 	a.Use(authenticator.Middleware)
-	a.Use(mw.UserLog)
 
 	s := a.PathPrefix("/elections").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetElections)

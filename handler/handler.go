@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"durn2.0/auth"
 	"durn2.0/durn"
 	rl "durn2.0/requestLog"
 	"durn2.0/util"
@@ -29,7 +30,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 }
 
 func LoginComplete(res http.ResponseWriter, req *http.Request) {
-	rl.Info(req, "Login complete")
+	rl.Info(req.Context(), "Login complete")
 
 	token, ok := req.URL.Query()["token"]
 	if !ok || len(token) == 0 {
@@ -39,15 +40,7 @@ func LoginComplete(res http.ResponseWriter, req *http.Request) {
 		)
 	}
 
-	cookie := http.Cookie{
-		Name:       "sessionID",
-		Value:      token[0],
-		Secure:     false,
-		HttpOnly:   true,
-		SameSite:   http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(res, &cookie)
+	_, _ = res.Write([]byte(token[0]))
 }
 
 func GetElections(res http.ResponseWriter, req *http.Request) {
@@ -92,7 +85,21 @@ func CreateElection(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	durn.CreateElection(req.Context(), data.Name, data.Alternatives)
+	err = durn.CreateElection(req.Context(), data.Name, data.Alternatives)
+	if err != nil {
+		if authErr, ok := err.(auth.AuthorizationError); ok {
+			util.RequestError(
+				res, req, http.StatusForbidden, authErr,
+				"User not authorized to create election",
+			)
+			return
+		} else {
+			util.RequestError(
+				res, req, http.StatusInternalServerError, err,
+				"Unknown internal error while creating election",
+			)
+		}
+	}
 }
 
 func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
@@ -137,7 +144,21 @@ func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	durn.AddEligibleVoters(req.Context(), electionId, data.Voters)
+	err = durn.AddEligibleVoters(req.Context(), electionId, data.Voters)
+	if err != nil {
+		if authErr, ok := err.(auth.AuthorizationError); ok {
+			util.RequestError(
+				res, req, http.StatusForbidden, authErr,
+				"User not authorized to add voters",
+			)
+			return
+		} else {
+			util.RequestError(
+				res, req, http.StatusInternalServerError, err,
+				"Unknown internal error while adding voters",
+			)
+		}
+	}
 }
 
 func GetEligibleVoters(res http.ResponseWriter, req *http.Request) {

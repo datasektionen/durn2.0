@@ -21,7 +21,7 @@ func RequestError(res http.ResponseWriter, req *http.Request, status int, err er
 
 	desc := fmt.Sprintf(format, v...)
 
-	rl.Warning(req, desc)
+	rl.Warning(req.Context(), desc)
 	res.WriteHeader(status)
 }
 

@@ -2,8 +2,11 @@ package durn
 
 import (
 	"context"
+	"durn2.0/auth"
+	rl "durn2.0/requestLog"
 	"durn2.0/util"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"sync"
 )
@@ -11,7 +14,12 @@ import (
 var elections = make(map[uuid.UUID]*Election)
 var mutex sync.Mutex
 
-func CreateElection(_ context.Context, name string, alternatives []Alternative) {
+func CreateElection(ctx context.Context, name string, alternatives []Alternative) error {
+	err := auth.IsAuthorized(ctx, "createElection")
+	if err != nil {
+		return err
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -24,6 +32,10 @@ func CreateElection(_ context.Context, name string, alternatives []Alternative) 
 	}
 
 	elections[e.Id] = &e
+
+	rl.Info(ctx, fmt.Sprintf("Election created (name: \"%s\", id: %s)", e.Name, e.Id.String()))
+
+	return nil
 }
 
 func GetElections() []Election {
@@ -57,14 +69,26 @@ func GetEligibleVoters(_ context.Context, electionId uuid.UUID) ([]EligibleVoter
 	return voters, nil
 }
 
-func AddEligibleVoters(_ context.Context, electionId uuid.UUID, voterIds []string) {
+func AddEligibleVoters(ctx context.Context, electionId uuid.UUID, voterIds []string) error {
+	err := auth.IsAuthorized(ctx, "addEligibleVoters")
+	if err != nil {
+		return err
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	election := elections[electionId]
+	election, ok := elections[electionId]
+	if !ok {
+		return errors.New("election does not exist")
+	}
+
+	added := 0
+	alreadyAdded := 0
 
 	for _, id := range voterIds {
 		if _, ok := election.EligibleVoters[id]; ok {
+			alreadyAdded += 1
 			continue
 		}
 
@@ -74,9 +98,15 @@ func AddEligibleVoters(_ context.Context, electionId uuid.UUID, voterIds []strin
 		}
 
 		election.EligibleVoters[id] = &voter
+
+		added += 1
 	}
 
 	elections[electionId] = election
+
+	rl.Info(ctx, fmt.Sprintf("Added %d voters (%d skippe due to already existing)", added, alreadyAdded))
+
+	return nil
 }
 
 func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative) error {

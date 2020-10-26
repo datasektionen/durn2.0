@@ -43,7 +43,7 @@ func main() {
 	a.Use(authenticator.Middleware)
 
 	s := a.PathPrefix("/elections").Subrouter()
-	s.Methods("GET").HandlerFunc(handler.GetElections)
+	s.Methods("GET").HandlerFunc(handler.GetElectionIds)
 	s.Methods("POST").HandlerFunc(handler.CreateElection)
 
 	s = a.PathPrefix("/election/{electionId}").Subrouter()

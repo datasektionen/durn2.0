@@ -13,12 +13,6 @@ import (
 
 const apiUrlFormat string = "https://pls.datasektionen.se/api/user/%s/durn/%s"
 
-type AuthorizationError string
-
-func (a AuthorizationError) Error() string {
-	return string(a)
-}
-
 func IsAuthorized(ctx context.Context, permission string) error {
 	user, ok := util.User(ctx)
 	if !ok {
@@ -53,7 +47,7 @@ func IsAuthorized(ctx context.Context, permission string) error {
 	}
 
 	if !authorized {
-		return AuthorizationError(fmt.Sprintf("%s not authorized for %s", user, permission))
+		return util.AuthorizationError(fmt.Sprintf("%s not authorized for %s", user, permission))
 	}
 
 	rl.Info(ctx, fmt.Sprintf("%s verified to be authorized for %s", user, permission))

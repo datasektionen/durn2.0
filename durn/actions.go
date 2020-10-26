@@ -38,17 +38,17 @@ func CreateElection(ctx context.Context, name string, alternatives []Alternative
 	return nil
 }
 
-func GetElections() []Election {
+func GetElectionIds() ([]uuid.UUID, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	e := make([]Election, 0, len(elections))
+	e := make([]uuid.UUID, 0, len(elections))
 
 	for _, election := range elections {
-		e = append(e, *election)
+		e = append(e, election.Id)
 	}
 
-	return e
+	return e, nil
 }
 
 func GetEligibleVoters(_ context.Context, electionId uuid.UUID) ([]EligibleVoter, error) {

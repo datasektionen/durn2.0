@@ -2,9 +2,11 @@ package util
 
 import (
 	"context"
-	rl "durn2.0/requestLog"
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -13,17 +15,6 @@ const UserKey string = "user"
 
 // Key for request id in context
 const ReqIdKey string = "reqId"
-
-func RequestError(res http.ResponseWriter, req *http.Request, status int, err error, format string, v ...interface{}) {
-	if err != nil {
-		format = fmt.Sprintf("%s: %v", format, err)
-	}
-
-	desc := fmt.Sprintf(format, v...)
-
-	rl.Warning(req.Context(), desc)
-	res.WriteHeader(status)
-}
 
 // Get the request ID from a context
 func ReqId(ctx context.Context) (uuid.UUID, bool) {
@@ -59,4 +50,43 @@ func MustUser(ctx context.Context) string {
 	}
 
 	return user
+}
+
+func GetPathUuid(req *http.Request, key string) (*uuid.UUID, error) {
+	raw, ok := mux.Vars(req)[key]
+	if !ok {
+		return nil, BadRequestError(fmt.Sprintf("missing %s from path", key))
+	}
+
+	id, err := uuid.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func ReadJson(req *http.Request, data interface{}) error {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func WriteJson(res http.ResponseWriter, data interface{}) error {
+	marshalledData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	_, err = res.Write(marshalledData)
+	return err
 }

@@ -5,7 +5,9 @@ import (
 	rl "durn2.0/requestLog"
 	"durn2.0/util"
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
+	"strings"
 )
 
 func Login(res http.ResponseWriter, req *http.Request) {
@@ -29,13 +31,39 @@ func LoginComplete(res http.ResponseWriter, req *http.Request) {
 }
 
 func GetElectionIds(res http.ResponseWriter, req *http.Request) {
-	electionIds, err := durn.GetElectionIds()
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
+	queriedStates := req.URL.Query().Get("states")
+	if queriedStates == "" {
+		queriedStates = "voting"
 	}
 
-	err = util.WriteJson(res, electionIds)
+	electionIds := make([]uuid.UUID, 0)
+
+	if strings.Contains(queriedStates, "unpublished") {
+		unpublishedElectionIds, err := durn.GetUnpublishedElectionIds(req.Context())
+		if err != nil {
+			util.RequestError(req.Context(), res, err)
+		}
+
+		electionIds = append(electionIds, unpublishedElectionIds...)
+	}
+	if strings.Contains(queriedStates, "voting") {
+		unpublishedElectionIds, err := durn.GetVotingElectionIds(req.Context())
+		if err != nil {
+			util.RequestError(req.Context(), res, err)
+		}
+
+		electionIds = append(electionIds, unpublishedElectionIds...)
+	}
+	if strings.Contains(queriedStates, "closed") {
+		unpublishedElectionIds, err := durn.GetClosedElectionIds(req.Context())
+		if err != nil {
+			util.RequestError(req.Context(), res, err)
+		}
+
+		electionIds = append(electionIds, unpublishedElectionIds...)
+	}
+
+	err := util.WriteJson(res, electionIds)
 	if err != nil {
 		util.RequestError(req.Context(), res, err)
 	}
@@ -53,6 +81,34 @@ func CreateElection(res http.ResponseWriter, req *http.Request) {
 	}
 
 	err = durn.CreateElection(req.Context(), data.Name, data.Alternatives)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+}
+
+func PublishElection(res http.ResponseWriter, req *http.Request) {
+	electionId, err := util.GetPathUuid(req, "electionId")
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	err = durn.PublishElection(req.Context(), *electionId)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+}
+
+func CloseElection(res http.ResponseWriter, req *http.Request) {
+	electionId, err := util.GetPathUuid(req, "electionId")
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	err = durn.CloseElection(req.Context(), *electionId)
 	if err != nil {
 		util.RequestError(req.Context(), res, err)
 		return

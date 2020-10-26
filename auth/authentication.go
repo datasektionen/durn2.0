@@ -81,3 +81,8 @@ type AuthenticatedUser struct {
 	KthID string `json:"ugkthid"`
 	UserName string `json:"user"`
 }
+
+func IsAuthenticated(ctx context.Context) bool {
+	_, ok := util.User(ctx)
+	return ok
+}

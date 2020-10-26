@@ -47,6 +47,8 @@ func main() {
 	s.Methods("POST").HandlerFunc(handler.CreateElection)
 
 	s = a.PathPrefix("/election/{electionId}").Subrouter()
+	s.Path("/publish").Methods("PUT").HandlerFunc(handler.PublishElection)
+	s.Path("/close").Methods("PUT").HandlerFunc(handler.CloseElection)
 	s.Path("/vote").Methods("POST").HandlerFunc(handler.CastVote)
 	s.Path("/voters").Methods("GET").HandlerFunc(handler.GetEligibleVoters)
 	s.Path("/voters").Methods("PUT").HandlerFunc(handler.AddEligibleVoters)

@@ -55,25 +55,38 @@ func (a AuthorizationError) Error() string {
 }
 
 func (a AuthorizationError) StatusCode() int {
-	panic("implement me")
+	return http.StatusForbidden
 }
 
 func (a AuthorizationError) Headers() map[string]string {
-	panic("implement me")
+	return map[string]string{}
 }
 
 type BadRequestError string
 
 func (b BadRequestError) Error() string {
-	panic("implement me")
+	return string(b)
 }
 
 func (b BadRequestError) StatusCode() int {
-	panic("implement me")
+	return http.StatusBadRequest
 }
 
 func (b BadRequestError) Headers() map[string]string {
-	panic("implement me")
+	return map[string]string{}
 }
 
+type ConflictError string
+
+func (c ConflictError) Error() string {
+	return string(c)
+}
+
+func (c ConflictError) StatusCode() int {
+	return http.StatusConflict
+}
+
+func (c ConflictError) Headers() map[string]string {
+	return map[string]string{}
+}
 

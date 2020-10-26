@@ -5,7 +5,6 @@ import (
 	"durn2.0/auth"
 	rl "durn2.0/requestLog"
 	"durn2.0/util"
-	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"sync"
@@ -29,6 +28,7 @@ func CreateElection(ctx context.Context, name string, alternatives []Alternative
 		Alternatives:   alternatives,
 		EligibleVoters: make(map[string]*EligibleVoter),
 		Votes:          make(map[uuid.UUID]Vote),
+		State:          Unpublished,
 	}
 
 	elections[e.Id] = &e
@@ -38,26 +38,122 @@ func CreateElection(ctx context.Context, name string, alternatives []Alternative
 	return nil
 }
 
-func GetElectionIds() ([]uuid.UUID, error) {
+func GetUnpublishedElectionIds(ctx context.Context) ([]uuid.UUID, error) {
+	err := auth.IsAuthorized(ctx, "getUnpublishedElectionIds")
+	if err != nil {
+		return nil, err
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	e := make([]uuid.UUID, 0, len(elections))
+	ids := make([]uuid.UUID, 0, len(elections))
 
 	for _, election := range elections {
-		e = append(e, election.Id)
+		if election.State == Unpublished {
+			ids = append(ids, election.Id)
+		}
 	}
 
-	return e, nil
+	return ids, nil
 }
 
-func GetEligibleVoters(_ context.Context, electionId uuid.UUID) ([]EligibleVoter, error) {
+func GetVotingElectionIds(ctx context.Context) ([]uuid.UUID, error) {
+	// ===Authorization===
+	// Any authenticated user is authorized
+	auth.IsAuthenticated(ctx)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	ids := make([]uuid.UUID, 0, len(elections))
+
+	for _, election := range elections {
+		if election.State == Voting {
+			ids = append(ids, election.Id)
+		}
+	}
+
+	return ids, nil
+}
+
+func GetClosedElectionIds(ctx context.Context) ([]uuid.UUID, error) {
+	// ===Authorization===
+	// Any authenticated user is authorized
+	auth.IsAuthenticated(ctx)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	ids := make([]uuid.UUID, 0, len(elections))
+
+	for _, election := range elections {
+		if election.State == Closed {
+			ids = append(ids, election.Id)
+		}
+	}
+
+	return ids, nil
+}
+
+func PublishElection(ctx context.Context, electionId uuid.UUID) error {
+	err := auth.IsAuthorized(ctx, "publishElection")
+	if err != nil {
+		return err
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	election, ok := elections[electionId]
 	if !ok {
-		return nil, errors.New("election does not exist")
+		return util.BadRequestError("election does not exist")
+	}
+
+	if election.State != Unpublished {
+		return util.ConflictError("elections is not unpublished")
+	}
+
+	election.State = Voting
+
+	return nil
+}
+
+func CloseElection(ctx context.Context, electionId uuid.UUID) error {
+	err := auth.IsAuthorized(ctx, "closeElection")
+	if err != nil {
+		return err
+	}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	election, ok := elections[electionId]
+	if !ok {
+		return util.BadRequestError("election does not exist")
+	}
+
+	if election.State != Voting {
+		return util.ConflictError("elections can not be closed as it is not in voting state")
+	}
+
+	election.State = Closed
+
+	return nil
+}
+
+func GetEligibleVoters(ctx context.Context, electionId uuid.UUID) ([]EligibleVoter, error) {
+	err := auth.IsAuthorized(ctx, "getEligibleVoters")
+	if err != nil {
+		return nil, err
+	}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	election, ok := elections[electionId]
+	if !ok {
+		return nil, util.BadRequestError("election does not exist")
 	}
 
 	voters := make([]EligibleVoter, 0, len(election.EligibleVoters))
@@ -80,7 +176,7 @@ func AddEligibleVoters(ctx context.Context, electionId uuid.UUID, voterIds []str
 
 	election, ok := elections[electionId]
 	if !ok {
-		return errors.New("election does not exist")
+		return util.BadRequestError("election does not exist")
 	}
 
 	added := 0
@@ -115,20 +211,24 @@ func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative
 
 	election, ok := elections[electionId]
 	if !ok {
-		return errors.New("election does not exist")
+		return util.BadRequestError("election does not exist")
+	}
+
+	if election.State != Voting {
+		return util.ConflictError("election is not open for voting right now")
 	}
 
 	if !election.hasAlternative(alternative) {
-		return errors.New("not valid alternative")
+		return util.BadRequestError("not valid alternative")
 	}
 
 	voterId := util.MustUser(ctx)
 	voter, ok := election.EligibleVoters[voterId]
 	if !ok {
-		return errors.New("voter does not exist")
+		return util.BadRequestError("voter does not exist")
 	}
 	if voter.Voted {
-		return errors.New("voter already voted")
+		return util.ConflictError("voter already voted")
 	}
 
 	vote := Vote{

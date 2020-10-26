@@ -14,6 +14,12 @@ import (
 
 const loginApiUrlFormat string = "https://login.datasektionen.se/verify/%s.json?api_key=%s"
 
+type AuthenticationError string
+
+func (a AuthenticationError) Error() string {
+	return string(a)
+}
+
 type AuthenticationMiddleware struct {
 	ApiKey string
 }
@@ -31,7 +37,10 @@ func (a *AuthenticationMiddleware) authenticate(ctx context.Context, token strin
 		return nil, err
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
+		if res.StatusCode == http.StatusNotFound {
+			return nil, AuthenticationError("could not verify token with login")
+		}
 		return nil, errors.New("non-ok (200) response from login")
 	}
 
@@ -58,14 +67,24 @@ func (a *AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.authenticate(ctx, token)
 		if err != nil {
-			util.RequestError(
-				res, req, http.StatusInternalServerError, err,
-				"Error while verifying user",
-			)
+			if authErr, ok := err.(AuthenticationError); ok {
+				res.Header().Set("WWW-Authenticate",
+					"Bearer," +
+					"error=\"invalid_token\"," +
+					"error_description=\"Invalid or expired access token\"")
+				util.RequestError(res, req, http.StatusUnauthorized, authErr,
+					"User not authenticated",
+				)
+			} else {
+				util.RequestError(
+					res, req, http.StatusInternalServerError, err,
+					"Error while verifying user",
+				)
+			}
 			return
 		}
 
-		rl.Info(req.Context(), fmt.Sprintf("Authenticated as %s %s (%s)", user.FirstName, user.LastName, user.UserName))
+		rl.Info(req.Context(), fmt.Sprintf("Authenticated client with login"))
 
 		ctx = context.WithValue(ctx, util.UserKey, user.UserName)
 		req = req.WithContext(ctx)

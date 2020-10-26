@@ -50,6 +50,7 @@ func main() {
 	s.Path("/publish").Methods("PUT").HandlerFunc(handler.PublishElection)
 	s.Path("/close").Methods("PUT").HandlerFunc(handler.CloseElection)
 	s.Path("/vote").Methods("POST").HandlerFunc(handler.CastVote)
+	s.Path("/votes").Methods("GET").HandlerFunc(handler.GetVotes)
 	s.Path("/voters").Methods("GET").HandlerFunc(handler.GetEligibleVoters)
 	s.Path("/voters").Methods("PUT").HandlerFunc(handler.AddEligibleVoters)
 

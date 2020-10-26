@@ -59,9 +59,10 @@ func GetUnpublishedElectionIds(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 func GetVotingElectionIds(ctx context.Context) ([]uuid.UUID, error) {
-	// ===Authorization===
 	// Any authenticated user is authorized
-	auth.IsAuthenticated(ctx)
+	if !auth.IsAuthenticated(ctx) {
+		return nil, util.AuthenticationError("user is not authenticated")
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -78,9 +79,10 @@ func GetVotingElectionIds(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 func GetClosedElectionIds(ctx context.Context) ([]uuid.UUID, error) {
-	// ===Authorization===
 	// Any authenticated user is authorized
-	auth.IsAuthenticated(ctx)
+	if !auth.IsAuthenticated(ctx) {
+		return nil, util.AuthenticationError("user is not authenticated")
+	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -205,30 +207,35 @@ func AddEligibleVoters(ctx context.Context, electionId uuid.UUID, voterIds []str
 	return nil
 }
 
-func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative) error {
+func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative) (*uuid.UUID, error) {
+	// Any authenticated user is authorized
+	if !auth.IsAuthenticated(ctx) {
+		return nil, util.AuthenticationError("user is not authenticated")
+	}
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	election, ok := elections[electionId]
 	if !ok {
-		return util.BadRequestError("election does not exist")
+		return nil, util.BadRequestError("election does not exist")
 	}
 
 	if election.State != Voting {
-		return util.ConflictError("election is not open for voting right now")
+		return nil, util.ConflictError("election is not open for voting right now")
 	}
 
 	if !election.hasAlternative(alternative) {
-		return util.BadRequestError("not valid alternative")
+		return nil, util.BadRequestError("not valid alternative")
 	}
 
 	voterId := util.MustUser(ctx)
 	voter, ok := election.EligibleVoters[voterId]
 	if !ok {
-		return util.BadRequestError("voter does not exist")
+		return nil, util.BadRequestError("voter does not exist")
 	}
 	if voter.Voted {
-		return util.ConflictError("voter already voted")
+		return nil, util.ConflictError("voter already voted")
 	}
 
 	vote := Vote{
@@ -239,5 +246,29 @@ func CastVote(ctx context.Context, electionId uuid.UUID, alternative Alternative
 	voter.Voted = true
 	election.Votes[vote.Id] = vote
 
-	return nil
+	return &vote.Id, nil
+}
+
+func GetVotes(ctx context.Context, electionId uuid.UUID) ([]Vote, error) {
+	// Any authenticated user is authorized
+	if !auth.IsAuthenticated(ctx) {
+		return nil, util.AuthenticationError("user is not authenticated")
+	}
+
+	election, ok := elections[electionId]
+	if !ok {
+		return nil, util.BadRequestError("election does not exist")
+	}
+
+	if election.State != Closed {
+		return nil, util.ConflictError("votes are only available when the election is closed")
+	}
+
+	votes := make([]Vote, 0, len(election.Votes))
+
+	for _, vote := range election.Votes {
+		votes = append(votes, vote)
+	}
+
+	return votes, nil
 }

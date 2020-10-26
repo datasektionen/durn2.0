@@ -173,9 +173,32 @@ func CastVote(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = durn.CastVote(req.Context(), *electionId, data.Alternative)
+	voteId, err := durn.CastVote(req.Context(), *electionId, data.Alternative)
 	if err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
+	}
+
+	err = util.WriteJson(res, *voteId)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+	}
+}
+
+func GetVotes(res http.ResponseWriter, req *http.Request) {
+	electionId, err := util.GetPathUuid(req, "electionId")
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	votes, err := durn.GetVotes(req.Context(), *electionId)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+	}
+
+	err = util.WriteJson(res, votes)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
 	}
 }

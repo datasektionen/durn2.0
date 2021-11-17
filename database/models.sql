@@ -2,6 +2,7 @@ CREATE TABLE Elections (
     id              TEXT NOT NULL,
     name            TEXT NOT NULL,
     published       BOOLEAN NOT NULL,
+    finalized       BOOLEAN NOT NULL,
     openTime        TIMESTAMP,
     closeTime       TIMESTAMP,
     PRIMARY KEY(id)

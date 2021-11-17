@@ -54,7 +54,7 @@ func main() {
 	s.Methods("GET").HandlerFunc(handler.GetElectionInfo)
 	s.Methods("PUT").HandlerFunc(handler.ModifyElection)
 	s.Path("/publish").Methods("PUT").HandlerFunc(handler.PublishElection)
-	s.Path("/close").Methods("PUT").HandlerFunc(handler.CloseElection)
+	s.Path("/unpublish").Methods("PUT").HandlerFunc(handler.CloseElection)
 	s.Path("/vote").Methods("POST").HandlerFunc(handler.CastVote)
 	s.Path("/votes").Methods("GET").HandlerFunc(handler.GetElectionVotes)
 	s.Path("/votes/count").Methods("GET").HandlerFunc(handler.CountElectionVotes)

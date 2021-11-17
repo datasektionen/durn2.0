@@ -1,35 +1,12 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	_ "strings"
 
 	_ "durn2.0/durn"
-	rl "durn2.0/requestLog"
-	"durn2.0/util"
 	_ "github.com/google/uuid"
 )
-
-func Login(res http.ResponseWriter, req *http.Request) {
-	apiUrl := "https://login.datasektionen.se/login?callback="
-	callbackUrl := fmt.Sprintf("http://%s/login-complete?token=", req.Host)
-	redirectUrl := fmt.Sprintf("%s%s", apiUrl, callbackUrl)
-
-	res.Header().Set("Location", redirectUrl)
-	res.WriteHeader(http.StatusTemporaryRedirect)
-}
-
-func LoginComplete(res http.ResponseWriter, req *http.Request) {
-	rl.Info(req.Context(), "Login complete")
-
-	token, ok := req.URL.Query()["token"]
-	if !ok || len(token) == 0 {
-		util.RequestError(req.Context(), res, util.BadRequestError("missing token parameter from request"))
-	}
-
-	_, _ = res.Write([]byte(token[0]))
-}
 
 // GET /api/elections
 func GetElections(res http.ResponseWriter, req *http.Request) {

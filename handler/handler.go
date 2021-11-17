@@ -168,7 +168,7 @@ func GetLogs(res http.ResponseWriter, req *http.Request) {
 // NukeSystem resets the system back to a clean state, removing all
 // traces of all currently available elections
 // Requires admin privileges
-// Endpoint: PUT /api/clearDB
+// Endpoint: PUT /api/reset-system
 func NukeSystem(res http.ResponseWriter, req *http.Request) {
 
 }

@@ -37,10 +37,6 @@ func main() {
 	r.Use(mw.RequestLog)
 	r.Use(mw.ResponseLog)
 
-	o := r.PathPrefix("/").Subrouter()
-	o.Path("/login").Methods("GET").HandlerFunc(handler.Login)
-	o.Path("/login-complete").Methods("GET").HandlerFunc(handler.LoginComplete)
-
 	a := r.PathPrefix("/api").Subrouter()
 	// a.Use(authenticator.Middleware)
 
@@ -54,9 +50,11 @@ func main() {
 	s.Methods("GET").HandlerFunc(handler.GetElectionInfo)
 	s.Methods("PUT").HandlerFunc(handler.ModifyElection)
 	s.Path("/publish").Methods("PUT").HandlerFunc(handler.PublishElection)
-	s.Path("/unpublish").Methods("PUT").HandlerFunc(handler.CloseElection)
+	s.Path("/unpublish").Methods("PUT").HandlerFunc(handler.UnpublishElection)
+	s.Path("/close").Methods("PUT").HandlerFunc(handler.CloseElection)
 	s.Path("/vote").Methods("POST").HandlerFunc(handler.CastVote)
 	s.Path("/votes").Methods("GET").HandlerFunc(handler.GetElectionVotes)
+	s.Path("/votes/hashes").Methods("GET").HandlerFunc(handler.GetElectionVoteHashes)
 	s.Path("/votes/count").Methods("GET").HandlerFunc(handler.CountElectionVotes)
 
 	s = a.PathPrefix("/candidates").Subrouter()

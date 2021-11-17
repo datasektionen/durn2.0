@@ -8,100 +8,167 @@ import (
 	_ "github.com/google/uuid"
 )
 
-// GET /api/elections
+// GetElections will fetch all elections in the system that the current
+// user is authorized to view. Will include election info.
+// Endpoint: GET /api/elections
 func GetElections(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// POST /api/election/create
+// CreateElection creates a new election, given some initial data.
+// Requires admin privileges
+// Endpoint: POST /api/election/create
 func CreateElection(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/election/{electionID}
+// GetElectionInfo fetches all general info about a specific election,
+// including: election name, candidates, when the election opens and closes,
+// and wether the election is published.
+// Endpoint: GET /api/election/{electionID}
 func GetElectionInfo(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// POST /api/election/{electionID}
-// CAN'T CHANGE (CANDIDATES OF?) ONGOING ELECTION??
+// ModifyElection can change the following data for an election:
+// Name, candidates, and open and close time.
+// Requires admin privileges.
+// Possibly: CAN'T CHANGE (CANDIDATES OF?) ONGOING ELECTION??
+// Endpoint: PUT /api/election/{electionID}
 func ModifyElection(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// PUT /api/election/{electionID}/publish
+// PublishElection marks an electins as published, marking it as ready
+// for voting. Requires admin privileges.
+// Endpoint: PUT /api/election/{electionID}/publish
 func PublishElection(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// PUT /api/election/{electionID}/close
+// UnpublishElection is the inverse of PublishElection
+// Requires admin privileges.
+// Endpoint: PUT /api/election/{electionID}/unpublish
+func UnpublishElection(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// CloseElection finalizes the result of the election, marking that
+// it can be opened for public verification.
+// Requires admin privileges.
+// Endpoint: PUT /api/election/{electionID}/close
 func CloseElection(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// POST /api/elections/{electionID}/vote
+// CastVote cast a vote in the specified election for the
+// currently authenticated user.
+// Endpoint: POST /api/elections/{electionID}/vote
 func CastVote(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/election/{electionID}/votes
-// AVAILABLE FOR ALL AFTER ELECTION HAS CLOSED
+// GetElectionVotes fetches a list of all votes in the selected election.
+// Requires admin privileges while the election is open,
+// but will be open to all once it has ended, to allow public verification
+// Endpoint: GET /api/election/{electionID}/votes
 func GetElectionVotes(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/election/{electionID}/votes/count
+// GetElectionVoteHashes fetches a list of all vote-hashes in the selected
+// election. Requires admin privileges while the election is open,
+// but will be open to all once it has ended, to allow public verification
+// Endpoint: GET /api/election/{electionID}/votes/hashes
+func GetElectionVoteHashes(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// CountElectionVotes runs the counting algorithm for the the specified
+// election. Will return all intermediate steps of the algorithm to allow
+// showing the process in frontent.
+// Requires admin privileges while the election is open,
+// but will be open to all once it has ended, to allow public verification
+// Endpoint: GET /api/election/{electionID}/votes/count
 func CountElectionVotes(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/candidates
+// GetAllCandidates fetches info about all candidates that the user is
+// authorized to view, i.e. in elections that the user can view.
+// Endpoint: GET /api/candidates
 func GetAllCandidates(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// POST /api/candidates/create
+// CreateCandidate creates a new candidate, given:
+// Their name and a link to a candidate presentation.
+// Requires admin privileges
+// Endpoint: POST /api/candidates/create
 func CreateCandidate(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/candidate/{candidateID}
+// GetCandidate fetches info about a candidate, if the user is
+// authorized to view it.
+// Endpoint: GET /api/candidate/{candidateID}
 func GetCandidate(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// POST /api/candidate/{candidateID}
+// ModifyCandidate changes the following info for a candidate:
+// their name and the link to their candidate presentation.
+// Requires admin privileges
+// Endpoint: PUT /api/candidate/{candidateID}
 func ModifyCandidate(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// DELETE /api/candidate/{candidateID}
-// ONLY IF NOT IN ANY ELECTIONS?
+// DeleteCandidate removes a candidat from the system
+// Requires admin privileges.
+// Should possibly only work if the user is in no elections?
+// TBD if this functionality should be in the system
+// Endpoint: DELETE /api/candidate/{candidateID}
 func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/voters
+// GetValidVoters fetches a list of all current users which are
+// authorized to vote in elections.
+// Requires admin privileges
+// Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// PUT /api/voters/add
+// AddValidVoters adds a list of users(emails) to the list of valid voters
+// Duplicates of users already in the system will be ignored
+// Requires admin privileges
+// Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// PUT /api/voters/remove
+// RemoveValidVoters removes users from the list of valid voters.
+// Users not in the list will be ignored
+// Requires admin privileges
+// Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GET /api/history
+// GetLogs returns a list of all voting events that has occurred in the
+// system, in order to make verifying a prober voting procedure easier
+// Requires admin privileges
+// Endpoiint: GET /api/history
 func GetLogs(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// PUT /api/clearDB
+// NukeSystem resets the system back to a clean state, removing all
+// traces of all currently available elections
+// Requires admin privileges
+// Endpoint: PUT /api/clearDB
 func NukeSystem(res http.ResponseWriter, req *http.Request) {
 
 }

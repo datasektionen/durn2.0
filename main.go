@@ -46,11 +46,13 @@ func main() {
 
 	s := a.PathPrefix("/elections").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetElections)
+
+	s = a.PathPrefix("/election").Subrouter()
 	s.Path("/create").Methods("POST").HandlerFunc(handler.CreateElection)
 
 	s = a.PathPrefix("/election/{electionId}").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetElectionInfo)
-	s.Methods("POST").HandlerFunc(handler.ModifyElection)
+	s.Methods("PUT").HandlerFunc(handler.ModifyElection)
 	s.Path("/publish").Methods("PUT").HandlerFunc(handler.PublishElection)
 	s.Path("/close").Methods("PUT").HandlerFunc(handler.CloseElection)
 	s.Path("/vote").Methods("POST").HandlerFunc(handler.CastVote)
@@ -59,11 +61,13 @@ func main() {
 
 	s = a.PathPrefix("/candidates").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetAllCandidates)
-	s.Path("/create").HandlerFunc(handler.CreateCandidate)
+
+	s = a.PathPrefix("/candidate").Subrouter()
+	s.Path("/create").Methods("POST").HandlerFunc(handler.CreateCandidate)
 
 	s = a.PathPrefix("/candidate/{candidateID}").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetCandidate)
-	s.Methods("POST").HandlerFunc(handler.ModifyCandidate)
+	s.Methods("PUT").HandlerFunc(handler.ModifyCandidate)
 	// s.Methods("DELETE").HandlerFunc(handler.DeleteCandidate)
 
 	s = a.PathPrefix("/voters").Subrouter()
@@ -74,7 +78,7 @@ func main() {
 	s = a.PathPrefix("/history").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetLogs)
 
-	s = a.PathPrefix("/cleardb").Subrouter()
+	s = a.PathPrefix("/reset-system").Subrouter()
 	s.Methods("PUT").HandlerFunc(handler.NukeSystem)
 
 	server := http.Server{

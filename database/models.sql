@@ -9,7 +9,7 @@ CREATE TABLE Elections (
 );
 
 CREATE TABLE Valid_Voters (
-    username        TEXT NOT NULL,
+    email           TEXT NOT NULL,
     PRIMARY KEY(username)
 );
 

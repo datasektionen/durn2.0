@@ -24,7 +24,7 @@ func CreateElection(res http.ResponseWriter, req *http.Request) {
 
 // GetElectionInfo fetches all general info about a specific election,
 // including: election name, candidates, when the election opens and closes,
-// and wether the election is published.
+// and whether the election is published.
 // Endpoint: GET /api/election/{electionID}
 func GetElectionInfo(res http.ResponseWriter, req *http.Request) {
 
@@ -39,7 +39,7 @@ func ModifyElection(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// PublishElection marks an electins as published, marking it as ready
+// PublishElection marks an elections as published, marking it as ready
 // for voting. Requires admin privileges.
 // Endpoint: PUT /api/election/{electionID}/publish
 func PublishElection(res http.ResponseWriter, req *http.Request) {
@@ -84,9 +84,9 @@ func GetElectionVoteHashes(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// CountElectionVotes runs the counting algorithm for the the specified
+// CountElectionVotes runs the counting algorithm for the specified
 // election. Will return all intermediate steps of the algorithm to allow
-// showing the process in frontent.
+// showing the process in frontend.
 // Requires admin privileges while the election is open,
 // but will be open to all once it has ended, to allow public verification
 // Endpoint: GET /api/election/{electionID}/votes/count
@@ -124,7 +124,7 @@ func ModifyCandidate(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// DeleteCandidate removes a candidat from the system
+// DeleteCandidate removes a candidate from the system
 // Requires admin privileges.
 // Should possibly only work if the user is in no elections?
 // TBD if this functionality should be in the system
@@ -158,9 +158,9 @@ func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 }
 
 // GetLogs returns a list of all voting events that has occurred in the
-// system, in order to make verifying a prober voting procedure easier
+// system, in order to make verifying a proper voting procedure easier
 // Requires admin privileges
-// Endpoiint: GET /api/history
+// Endpoint: GET /api/history
 func GetLogs(res http.ResponseWriter, req *http.Request) {
 
 }

@@ -1,204 +1,174 @@
 package handler
 
 import (
-	"durn2.0/durn"
-	rl "durn2.0/requestLog"
-	"durn2.0/util"
-	"fmt"
-	"github.com/google/uuid"
 	"net/http"
-	"strings"
+	_ "strings"
+
+	_ "durn2.0/durn"
+	_ "github.com/google/uuid"
 )
 
-func Login(res http.ResponseWriter, req *http.Request) {
-	apiUrl := "https://login.datasektionen.se/login?callback="
-	callbackUrl := fmt.Sprintf("http://%s/login-complete?token=", req.Host)
-	redirectUrl := fmt.Sprintf("%s%s", apiUrl, callbackUrl)
+// GetElections will fetch all elections in the system that the current
+// user is authorized to view. Will include election info.
+// Endpoint: GET /api/elections
+func GetElections(res http.ResponseWriter, req *http.Request) {
 
-	res.Header().Set("Location", redirectUrl)
-	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func LoginComplete(res http.ResponseWriter, req *http.Request) {
-	rl.Info(req.Context(), "Login complete")
-
-	token, ok := req.URL.Query()["token"]
-	if !ok || len(token) == 0 {
-		util.RequestError(req.Context(), res, util.BadRequestError("missing token parameter from request"))
-	}
-
-	_, _ = res.Write([]byte(token[0]))
-}
-
-func GetElectionIds(res http.ResponseWriter, req *http.Request) {
-	queriedStates := req.URL.Query().Get("states")
-	if queriedStates == "" {
-		queriedStates = "voting"
-	}
-
-	electionIds := make([]uuid.UUID, 0)
-
-	if strings.Contains(queriedStates, "unpublished") {
-		unpublishedElectionIds, err := durn.GetUnpublishedElectionIds(req.Context())
-		if err != nil {
-			util.RequestError(req.Context(), res, err)
-		}
-
-		electionIds = append(electionIds, unpublishedElectionIds...)
-	}
-	if strings.Contains(queriedStates, "voting") {
-		unpublishedElectionIds, err := durn.GetVotingElectionIds(req.Context())
-		if err != nil {
-			util.RequestError(req.Context(), res, err)
-		}
-
-		electionIds = append(electionIds, unpublishedElectionIds...)
-	}
-	if strings.Contains(queriedStates, "closed") {
-		unpublishedElectionIds, err := durn.GetClosedElectionIds(req.Context())
-		if err != nil {
-			util.RequestError(req.Context(), res, err)
-		}
-
-		electionIds = append(electionIds, unpublishedElectionIds...)
-	}
-
-	err := util.WriteJson(res, electionIds)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
-}
-
+// CreateElection creates a new election, given some initial data.
+// Requires admin privileges
+// Endpoint: POST /api/election/create
 func CreateElection(res http.ResponseWriter, req *http.Request) {
-	var data struct {
-		Name         string
-		Alternatives []durn.Alternative
-	}
 
-	err := util.ReadJson(req, &data)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
-
-	err = durn.CreateElection(req.Context(), data.Name, data.Alternatives)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
 }
 
+// GetElectionInfo fetches all general info about a specific election,
+// including: election name, candidates, when the election opens and closes,
+// and whether the election is published.
+// Endpoint: GET /api/election/{electionID}
+func GetElectionInfo(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// ModifyElection can change the following data for an election:
+// Name, candidates, and open and close time.
+// Requires admin privileges.
+// Possibly: CAN'T CHANGE (CANDIDATES OF?) ONGOING ELECTION??
+// Endpoint: PUT /api/election/{electionID}
+func ModifyElection(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// PublishElection marks an elections as published, marking it as ready
+// for voting. Requires admin privileges.
+// Endpoint: PUT /api/election/{electionID}/publish
 func PublishElection(res http.ResponseWriter, req *http.Request) {
-	electionId, err := util.GetPathUuid(req, "electionId")
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
 
-	err = durn.PublishElection(req.Context(), *electionId)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
 }
 
+// UnpublishElection is the inverse of PublishElection
+// Requires admin privileges.
+// Endpoint: PUT /api/election/{electionID}/unpublish
+func UnpublishElection(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// CloseElection finalizes the result of the election, marking that
+// it can be opened for public verification.
+// Requires admin privileges.
+// Endpoint: PUT /api/election/{electionID}/close
 func CloseElection(res http.ResponseWriter, req *http.Request) {
-	electionId, err := util.GetPathUuid(req, "electionId")
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
 
-	err = durn.CloseElection(req.Context(), *electionId)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
 }
 
-func AddEligibleVoters(res http.ResponseWriter, req *http.Request) {
-	electionId, err := util.GetPathUuid(req, "electionId")
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	var data struct {
-		Voters []string
-	}
-
-	err = util.ReadJson(req, &data)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	err = durn.AddEligibleVoters(req.Context(), *electionId, data.Voters)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
-}
-
-func GetEligibleVoters(res http.ResponseWriter, req *http.Request) {
-	electionId, err := util.GetPathUuid(req, "electionId")
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	voters, err := durn.GetEligibleVoters(req.Context(), *electionId)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
-
-	err = util.WriteJson(res, voters)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
-}
-
+// CastVote cast a vote in the specified election for the
+// currently authenticated user.
+// Endpoint: POST /api/elections/{electionID}/vote
 func CastVote(res http.ResponseWriter, req *http.Request) {
-	electionId, err := util.GetPathUuid(req, "electionId")
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
 
-	var data struct {
-		Alternative durn.Alternative
-	}
-
-	err = util.ReadJson(req, &data)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	voteId, err := durn.CastVote(req.Context(), *electionId, data.Alternative)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	err = util.WriteJson(res, *voteId)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
 }
 
-func GetVotes(res http.ResponseWriter, req *http.Request) {
-	electionId, err := util.GetPathUuid(req, "electionId")
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-		return
-	}
+// GetElectionVotes fetches a list of all votes in the selected election.
+// Requires admin privileges while the election is open,
+// but will be open to all once it has ended, to allow public verification
+// Endpoint: GET /api/election/{electionID}/votes
+func GetElectionVotes(res http.ResponseWriter, req *http.Request) {
 
-	votes, err := durn.GetVotes(req.Context(), *electionId)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
+}
 
-	err = util.WriteJson(res, votes)
-	if err != nil {
-		util.RequestError(req.Context(), res, err)
-	}
+// GetElectionVoteHashes fetches a list of all vote-hashes in the selected
+// election. Requires admin privileges while the election is open,
+// but will be open to all once it has ended, to allow public verification
+// Endpoint: GET /api/election/{electionID}/votes/hashes
+func GetElectionVoteHashes(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// CountElectionVotes runs the counting algorithm for the specified
+// election. Will return all intermediate steps of the algorithm to allow
+// showing the process in frontend.
+// Requires admin privileges while the election is open,
+// but will be open to all once it has ended, to allow public verification
+// Endpoint: GET /api/election/{electionID}/votes/count
+func CountElectionVotes(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// GetAllCandidates fetches info about all candidates that the user is
+// authorized to view, i.e. in elections that the user can view.
+// Endpoint: GET /api/candidates
+func GetAllCandidates(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// CreateCandidate creates a new candidate, given:
+// Their name and a link to a candidate presentation.
+// Requires admin privileges
+// Endpoint: POST /api/candidates/create
+func CreateCandidate(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// GetCandidate fetches info about a candidate, if the user is
+// authorized to view it.
+// Endpoint: GET /api/candidate/{candidateID}
+func GetCandidate(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// ModifyCandidate changes the following info for a candidate:
+// their name and the link to their candidate presentation.
+// Requires admin privileges
+// Endpoint: PUT /api/candidate/{candidateID}
+func ModifyCandidate(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// DeleteCandidate removes a candidate from the system
+// Requires admin privileges.
+// Should possibly only work if the user is in no elections?
+// TBD if this functionality should be in the system
+// Endpoint: DELETE /api/candidate/{candidateID}
+func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// GetValidVoters fetches a list of all current users which are
+// authorized to vote in elections.
+// Requires admin privileges
+// Endpoint: GET /api/voters
+func GetValidVoters(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// AddValidVoters adds a list of users(emails) to the list of valid voters
+// Duplicates of users already in the system will be ignored
+// Requires admin privileges
+// Endpoint: PUT /api/voters/add
+func AddValidVoters(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// RemoveValidVoters removes users from the list of valid voters.
+// Users not in the list will be ignored
+// Requires admin privileges
+// Endpoint: PUT /api/voters/remove
+func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// GetLogs returns a list of all voting events that has occurred in the
+// system, in order to make verifying a proper voting procedure easier
+// Requires admin privileges
+// Endpoint: GET /api/history
+func GetLogs(res http.ResponseWriter, req *http.Request) {
+
+}
+
+// NukeSystem resets the system back to a clean state, removing all
+// traces of all currently available elections
+// Requires admin privileges
+// Endpoint: PUT /api/reset-system
+func NukeSystem(res http.ResponseWriter, req *http.Request) {
+
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 
 	"durn2.0/conf"
@@ -57,35 +56,22 @@ func QueryAllVoters() ([]string, error) {
 	return res, nil
 }
 
-func InsertElection(durn.Election e) error {
+func InsertElection(e durn.Election) error {
 	query := "INSERT INTO Elections(id, name, published, finalized, opentime, closetime) values ($1, $2, $3, $4, $5, $6)"
-	_, err := db.Exec(query, e.id, e.name, e.isOpen, e.isFinalized, e.openTime, e.closeTime)
+	_, err := db.Exec(query, e.Id, e.Name, e.IsOpen, e.IsFinalized, e.OpenTime, e.CloseTime)
 	if err != nil {
-		println(err) // TODO: better logging
+		println(err)
 		return errors.New("Failure while inserting into Elections, see logs for more info")
 	}
 	return nil
 }
 
-func InsertCandidate(durn.Election e) error {
+func InsertCandidate(e durn.Candidate) error {
 	query := "INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)"
-	_, err := db.Exec(query, e.id, e.name, e.presentation)
+	_, err := db.Exec(query, e.Id, e.Name, e.Presentation)
 	if err != nil {
-		println(err) // TODO: better logging
+		println(err)
 		return errors.New("Failure while inserting into Candidates, see logs for more info")
 	}
 	return nil
 }
-
-func UpdateElectionInfo(durn.Election e) error {
-	query := "SELECT * from where id = $1"
-
-	row, err := db.QueryRow(query, e.id)
-
-
-
-	query = "UPDATE where id = $1"
-	_, err = db.Exec(query, e.id)
-}
-
-func

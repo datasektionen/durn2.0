@@ -19,7 +19,7 @@ var db *sql.DB
 // the connection details specified in env-vars
 func CreateDBConnection() {
 	c := conf.ReadConfiguration()
-	psqlconn := fmt.Sprintf("host=localhost port=%d user=%s password=%s dbname=%s sslmode=disable", c.DBPort, c.DBUser, c.DBPassword, c.DBName)
+	psqlconn := fmt.Sprintf("host=localhost port=%d user='%s' password='%s' dbname='%s' sslmode=disable", c.DBPort, c.DBUser, c.DBPassword, c.DBName)
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -41,7 +41,7 @@ func QueryAllVoters() ([]durn.Voter, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	query := "SELECT * from valid_voters"
+	query := `SELECT * from valid_voters`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func QueryAllVoters() ([]durn.Voter, error) {
 }
 
 func InsertElection(e durn.Election) error {
-	query := "INSERT INTO Elections(id, name, published, finalized, opentime, closetime) values ($1, $2, $3, $4, $5, $6)"
+	query := `INSERT INTO Elections(id, name, published, finalized, opentime, closetime) values ($1, $2, $3, $4, $5, $6)`
 	_, err := db.Exec(query, e.Id, e.Name, e.IsOpen, e.IsFinalized, e.OpenTime, e.CloseTime)
 	if err != nil {
 		println(err)
@@ -69,7 +69,7 @@ func InsertElection(e durn.Election) error {
 }
 
 func InsertCandidate(e durn.Candidate) error {
-	query := "INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)"
+	query := `INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)`
 	_, err := db.Exec(query, e.Id, e.Name, e.Presentation)
 	if err != nil {
 		println(err)

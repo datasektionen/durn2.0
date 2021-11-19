@@ -21,13 +21,13 @@ CREATE TABLE Candidates (
 );
 
 CREATE TABLE Casted_Votes (
-    mail            TEXT NOT NULL,
+    email           TEXT NOT NULL,
     electionID      TEXT NOT NULL,
-    PRIMARY KEY(mail, electionID),
+    PRIMARY KEY(email, electionID),
 
     CONSTRAINT fk_voters
-        FOREIGN KEY(mail)
-        REFERENCES Valid_Voters(mail),
+        FOREIGN KEY(email)
+        REFERENCES Valid_Voters(email),
     CONSTRAINT fk_elections
         FOREIGN KEY(electionID)
         REFERENCES Elections(id)

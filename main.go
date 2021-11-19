@@ -8,6 +8,7 @@ import (
 
 	_ "durn2.0/auth"
 	"durn2.0/conf"
+	db "durn2.0/database"
 	"durn2.0/handler"
 	mw "durn2.0/middleware"
 	rl "durn2.0/requestLog"
@@ -31,6 +32,9 @@ func main() {
 	/* authenticator := auth.AuthenticationMiddleware{
 		ApiKey: c.LoginApiKey,
 	} */
+
+	db.CreateDBConnection()
+	defer db.DisconnectDB()
 
 	r := mux.NewRouter()
 	r.Use(mw.Track)

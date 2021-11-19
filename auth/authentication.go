@@ -2,14 +2,15 @@ package auth
 
 import (
 	"context"
-	rl "durn2.0/requestLog"
-	"durn2.0/util"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	rl "durn2.0/requestLog"
+	"durn2.0/util"
 )
 
 const loginApiUrlFormat string = "https://login.datasektionen.se/verify/%s.json?api_key=%s"
@@ -75,11 +76,11 @@ func (a *AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 }
 
 type AuthenticatedUser struct {
-	Email string `json:"email"`
+	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
-	LastName string `json:"last_name"`
-	KthID string `json:"ugkthid"`
-	UserName string `json:"user"`
+	LastName  string `json:"last_name"`
+	KthID     string `json:"ugkthid"`
+	UserName  string `json:"user"`
 }
 
 func IsAuthenticated(ctx context.Context) bool {

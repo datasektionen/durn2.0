@@ -2,13 +2,14 @@ package auth
 
 import (
 	"context"
-	rl "durn2.0/requestLog"
-	"durn2.0/util"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	rl "durn2.0/requestLog"
+	"durn2.0/util"
 )
 
 const apiUrlFormat string = "https://pls.datasektionen.se/api/user/%s/durn/%s"

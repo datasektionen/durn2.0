@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"durn2.0/auth"
 	_ "durn2.0/auth"
 	"durn2.0/conf"
 	"durn2.0/handler"
@@ -28,9 +29,9 @@ func main() {
 		}
 	})
 
-	/* authenticator := auth.AuthenticationMiddleware{
+	authenticator := auth.AuthenticationMiddleware{
 		ApiKey: c.LoginApiKey,
-	} */
+	}
 
 	r := mux.NewRouter()
 	r.Use(mw.Track)
@@ -38,7 +39,7 @@ func main() {
 	r.Use(mw.ResponseLog)
 
 	a := r.PathPrefix("/api").Subrouter()
-	// a.Use(authenticator.Middleware)
+	a.Use(authenticator.Middleware)
 
 	s := a.PathPrefix("/elections").Subrouter()
 	s.Methods("GET").HandlerFunc(handler.GetElections)

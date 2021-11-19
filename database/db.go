@@ -15,6 +15,8 @@ import (
 var mutex sync.Mutex
 var db *sql.DB
 
+// CreateDBConnection Initializes the database connection using
+// the connection details specified in env-vars
 func CreateDBConnection() {
 	c := conf.ReadConfiguration()
 	psqlconn := fmt.Sprintf("host=localhost port=%d user=%s password=%s dbname=%s sslmode=disable", c.DBPort, c.DBUser, c.DBPassword, c.DBName)
@@ -35,7 +37,7 @@ func DisconnectDB() {
 	db.Close()
 }
 
-func QueryAllVoters() ([]string, error) {
+func QueryAllVoters() ([]durn.Voter, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -45,10 +47,10 @@ func QueryAllVoters() ([]string, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var res []string
+	var res []durn.Voter
 
 	for rows.Next() {
-		var username string
+		var username durn.Voter
 		err = rows.Scan(&username)
 		res = append(res, username)
 	}

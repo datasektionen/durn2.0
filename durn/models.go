@@ -7,18 +7,18 @@ import (
 )
 
 type Election struct {
-	id          uuid.UUID
-	candidates  []uuid.UUID
-	name        string
-	isOpen      bool
-	isFinalized bool
-	openTime    time.Time
-	closeTime   time.Time
+	Id          uuid.UUID
+	Candidates  []uuid.UUID
+	Name        string
+	IsOpen      bool
+	IsFinalized bool
+	OpenTime    time.Time
+	CloseTime   time.Time
 }
 
 type Candidate struct {
-	id           uuid.UUID
-	name         string
-	presentation string
-	elections    []uuid.UUID
+	Id           uuid.UUID
+	Name         string
+	Presentation string
+	Elections    []uuid.UUID
 }

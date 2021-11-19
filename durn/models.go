@@ -29,3 +29,5 @@ type Vote struct {
 	Ranking  uuid.UUID
 	voteTime time.Time
 }
+
+type Voter string

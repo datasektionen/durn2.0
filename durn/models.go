@@ -22,3 +22,10 @@ type Candidate struct {
 	Presentation string
 	Elections    []uuid.UUID
 }
+
+type Vote struct {
+	Hash     string
+	Election uuid.UUID
+	Ranking  uuid.UUID
+	voteTime time.Time
+}

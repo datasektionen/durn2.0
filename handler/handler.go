@@ -7,7 +7,7 @@ import (
 	"durn2.0/auth"
 	db "durn2.0/database"
 	"durn2.0/durn"
-	_ "durn2.0/durn"
+	"durn2.0/models"
 	"durn2.0/util"
 	_ "github.com/google/uuid"
 )
@@ -156,15 +156,18 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 	voters, err := db.QueryAllVoters()
 	if err != nil {
 		util.RequestError(req.Context(), res, util.ServerError("Database query failed"))
+		return
 	}
 
 	var response_data struct {
-		voters []durn.Voter
+		Voters []models.Voter
 	}
-	response_data.voters = voters
+
+	response_data.Voters = voters
 	err = util.WriteJson(res, response_data)
 	if err != nil {
 		util.RequestError(req.Context(), res, err)
+		return
 	}
 }
 
@@ -173,7 +176,33 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
+	if !auth.IsAuthenticated(req.Context()) {
+		err := util.AuthenticationError("Not authorized")
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 
+	if err := auth.IsAuthorized(req.Context(), "viewAdmin"); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	var request_data struct {
+		Voters []models.Voter
+	}
+
+	err := util.ReadJson(req, request_data)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	err = durn.AddValidVoters(request_data.Voters)
+
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 }
 
 // RemoveValidVoters removes users from the list of valid voters.

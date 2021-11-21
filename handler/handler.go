@@ -4,7 +4,11 @@ import (
 	"net/http"
 	_ "strings"
 
+	"durn2.0/auth"
+	db "durn2.0/database"
+	"durn2.0/durn"
 	_ "durn2.0/durn"
+	"durn2.0/util"
 	_ "github.com/google/uuid"
 )
 
@@ -138,7 +142,30 @@ func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
+	if !auth.IsAuthenticated(req.Context()) {
+		err := util.AuthenticationError("Not authorized")
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 
+	if err := auth.IsAuthorized(req.Context(), "viewAdmin"); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	voters, err := db.QueryAllVoters()
+	if err != nil {
+		util.RequestError(req.Context(), res, util.ServerError("Database query failed"))
+	}
+
+	var response_data struct {
+		voters []durn.Voter
+	}
+	response_data.voters = voters
+	err = util.WriteJson(res, response_data)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+	}
 }
 
 // AddValidVoters adds a list of users(emails) to the list of valid voters

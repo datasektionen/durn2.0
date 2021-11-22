@@ -10,7 +10,7 @@ CREATE TABLE Elections (
 
 CREATE TABLE Valid_Voters (
     email           TEXT NOT NULL,
-    PRIMARY KEY(username)
+    PRIMARY KEY(email)
 );
 
 CREATE TABLE Candidates (
@@ -21,13 +21,13 @@ CREATE TABLE Candidates (
 );
 
 CREATE TABLE Casted_Votes (
-    username        TEXT NOT NULL,
+    email           TEXT NOT NULL,
     electionID      TEXT NOT NULL,
-    PRIMARY KEY(username, electionID),
+    PRIMARY KEY(email, electionID),
 
     CONSTRAINT fk_voters
-        FOREIGN KEY(username)
-        REFERENCES Valid_Voters(username),
+        FOREIGN KEY(email)
+        REFERENCES Valid_Voters(email),
     CONSTRAINT fk_elections
         FOREIGN KEY(electionID)
         REFERENCES Elections(id)
@@ -58,11 +58,11 @@ CREATE TABLE Candidates_In_Elections (
 );
 
 CREATE TABLE Vote_Log (
-    VoteHash        TEXT NOT NULL,
-    VoteTime        TIMESTAMP NOT NULL,
-    PRIMARY KEY(VoteHash),
+    voteHash        TEXT NOT NULL,
+    voteTime        TIMESTAMP NOT NULL,
+    PRIMARY KEY(voteHash),
 
     CONSTRAINT fk_votes
-        FOREIGN KEY(VoteHash)
+        FOREIGN KEY(voteHash)
         REFERENCES Votes(hash)
 )

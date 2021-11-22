@@ -41,7 +41,7 @@ func QueryAllVoters() ([]models.Voter, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	query := `SELECT * from valid_voters`
+	query := `SELECT * FROM valid_voters`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,11 @@ func InsertVoters(voters []models.Voter) error {
 }
 
 func InsertElection(e models.Election) error {
-	query := `INSERT INTO Elections(id, name, published, finalized, opentime, closetime) values ($1, $2, $3, $4, $5, $6)`
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	query := `INSERT INTO Elections(id, name, published, finalized, opentime, closetime) VALUES ($1, $2, $3, $4, $5, $6)`
+
 	_, err := db.Exec(query, e.Id, e.Name, e.IsOpen, e.IsFinalized, e.OpenTime, e.CloseTime)
 	if err != nil {
 		println(err)
@@ -92,6 +96,9 @@ func InsertElection(e models.Election) error {
 }
 
 func InsertCandidate(e models.Candidate) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	query := `INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)`
 	_, err := db.Exec(query, e.Id, e.Name, e.Presentation)
 	if err != nil {

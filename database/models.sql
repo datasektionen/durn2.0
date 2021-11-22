@@ -58,11 +58,11 @@ CREATE TABLE Candidates_In_Elections (
 );
 
 CREATE TABLE Vote_Log (
-    VoteHash        TEXT NOT NULL,
-    VoteTime        TIMESTAMP NOT NULL,
-    PRIMARY KEY(VoteHash),
+    voteHash        TEXT NOT NULL,
+    voteTime        TIMESTAMP NOT NULL,
+    PRIMARY KEY(voteHash),
 
     CONSTRAINT fk_votes
-        FOREIGN KEY(VoteHash)
+        FOREIGN KEY(voteHash)
         REFERENCES Votes(hash)
 )

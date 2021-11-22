@@ -14,9 +14,9 @@ import (
 // AddValidVoters checks that provided voters are entered as valid emails, and if that
 // is the case inserts them into the database
 func AddValidVoters(ctx context.Context, voters []models.Voter) error {
-	mailregex := "[a-zA-Z]+@kth\\.se"
+	mailRegex := "[^@]+@kth\\.se"
 	for _, voter := range voters {
-		matches, err := regexp.MatchString(mailregex, string(voter))
+		matches, err := regexp.MatchString(mailRegex, string(voter))
 		if !matches {
 			return util.BadRequestError(fmt.Sprintf("Trying to add email address '%s'", voter))
 		}

@@ -64,15 +64,26 @@ func InsertVoters(voters []models.Voter) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	for _, voter := range voters {
-		var email string
-		err := db.QueryRow(`SELECT * FROM valid_voters WHERE email = $1`, voter).Scan(&email)
-		if err != sql.ErrNoRows {
-			continue
-		}
-		_, err = db.Exec(`INSERT INTO valid_voters VALUES ($1)`, voter)
-		if err != nil {
+	query := `SELECT * FROM valid_voters`
+	rows, err := db.Query(query)
+	if err != nil {
+		return err
+	}
+
+	alreadyAdded := map[models.Voter]bool{}
+	for rows.Next() {
+		var voter models.Voter
+		if err := rows.Scan(&voter); err != nil {
 			return err
+		}
+		alreadyAdded[voter] = true
+	}
+
+	for _, voter := range voters {
+		if !alreadyAdded[voter] {
+			if _, err = db.Exec(`INSERT INTO valid_voters VALUES ($1)`, voter); err != nil {
+				return err
+			}
 		}
 	}
 

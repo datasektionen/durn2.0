@@ -161,7 +161,8 @@ func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
-	if !isAuthenticatedWithPermissions(res, req, []string{"viewAdmin"}) {
+	perms := []string{util.VIEW_ADMIN}
+	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
 
@@ -176,8 +177,7 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 	}
 
 	response_data.Voters = voters
-	err = util.WriteJson(res, response_data)
-	if err != nil {
+	if err := util.WriteJson(res, response_data); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
@@ -188,7 +188,8 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
-	if !isAuthenticatedWithPermissions(res, req, []string{"modifyAdmin"}) {
+	perms := []string{util.MODIFY_ADMIN}
+	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
 
@@ -196,8 +197,7 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 		Voters []string
 	}
 
-	err := util.ReadJson(req, &request_data)
-	if err != nil {
+	if err := util.ReadJson(req, &request_data); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
@@ -207,9 +207,7 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 		voters = append(voters, models.Voter(voter))
 	}
 
-	err = durn.AddValidVoters(req.Context(), voters)
-
-	if err != nil {
+	if err := durn.AddValidVoters(req.Context(), voters); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
@@ -220,7 +218,8 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
-	if !isAuthenticatedWithPermissions(res, req, []string{"modifyAdmin"}) {
+	perms := []string{util.MODIFY_ADMIN}
+	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
 
@@ -228,8 +227,7 @@ func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 		Voters []string
 	}
 
-	err := util.ReadJson(req, &request_data)
-	if err != nil {
+	if err := util.ReadJson(req, &request_data); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
@@ -239,9 +237,7 @@ func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 		voters = append(voters, models.Voter(voter))
 	}
 
-	err = db.DeleteVoters(voters)
-
-	if err != nil {
+	if err := db.DeleteVoters(voters); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}

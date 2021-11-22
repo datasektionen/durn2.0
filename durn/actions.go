@@ -26,8 +26,7 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) error {
 		}
 	}
 
-	err := db.InsertVoters(voters)
-	if err != nil {
+	if err := db.InsertVoters(voters); err != nil {
 		rl.Warning(ctx, err.Error())
 		return util.ServerError("Error while inserting into database")
 	}

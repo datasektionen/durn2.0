@@ -95,8 +95,8 @@ func DeleteVoters(voters []models.Voter) error {
 	defer mutex.Unlock()
 
 	for _, voter := range voters {
-		_, err := db.Exec(`DELETE FROM valid_voters WHERE email = $1`, voter)
-		if err != nil {
+		query := `DELETE FROM valid_voters WHERE email = $1`
+		if _, err := db.Exec(query, voter); err != nil {
 			return err
 		}
 	}
@@ -109,7 +109,6 @@ func InsertElection(e models.Election) error {
 	defer mutex.Unlock()
 
 	query := `INSERT INTO Elections(id, name, published, finalized, opentime, closetime) VALUES ($1, $2, $3, $4, $5, $6)`
-
 	_, err := db.Exec(query, e.Id, e.Name, e.IsOpen, e.IsFinalized, e.OpenTime, e.CloseTime)
 	if err != nil {
 		println(err)
@@ -123,8 +122,7 @@ func InsertCandidate(e models.Candidate) error {
 	defer mutex.Unlock()
 
 	query := `INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)`
-	_, err := db.Exec(query, e.Id, e.Name, e.Presentation)
-	if err != nil {
+	if _, err := db.Exec(query, e.Id, e.Name, e.Presentation); err != nil {
 		println(err)
 		return errors.New("Failure while inserting into Candidates, see logs for more info")
 	}

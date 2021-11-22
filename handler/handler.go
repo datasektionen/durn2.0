@@ -12,6 +12,10 @@ import (
 	_ "github.com/google/uuid"
 )
 
+func IsAuthenticatedWithPermissions(res http.ResponseWriter, req *http.Request, perms []string) {
+
+}
+
 // GetElections will fetch all elections in the system that the current
 // user is authorized to view. Will include election info.
 // Endpoint: GET /api/elections
@@ -215,6 +219,38 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
+	if !auth.IsAuthenticated(req.Context()) {
+		err := util.AuthenticationError("Not authorized")
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	if err := auth.IsAuthorized(req.Context(), "viewAdmin"); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	var request_data struct {
+		Voters []string
+	}
+
+	err := util.ReadJson(req, &request_data)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	var voters []models.Voter
+	for _, voter := range request_data.Voters {
+		voters = append(voters, models.Voter(voter))
+	}
+
+	err = db.DeleteVoters(voters)
+
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 
 }
 

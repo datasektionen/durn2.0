@@ -12,8 +12,23 @@ import (
 	_ "github.com/google/uuid"
 )
 
-func IsAuthenticatedWithPermissions(res http.ResponseWriter, req *http.Request, perms []string) {
+// isAuthenticatedWithPermissions checks that a the requester is authenticated
+// and has the specified permissions. Writes the proper response to user if not
+func isAuthenticatedWithPermissions(res http.ResponseWriter, req *http.Request, perms []string) bool {
+	if !auth.IsAuthenticated(req.Context()) {
+		err := util.AuthenticationError("Not authorized")
+		util.RequestError(req.Context(), res, err)
+		return false
+	}
 
+	for _, perm := range perms {
+		if err := auth.IsAuthorized(req.Context(), perm); err != nil {
+			util.RequestError(req.Context(), res, err)
+			return false
+		}
+	}
+
+	return true
 }
 
 // GetElections will fetch all elections in the system that the current
@@ -146,14 +161,7 @@ func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
-	if !auth.IsAuthenticated(req.Context()) {
-		err := util.AuthenticationError("Not authorized")
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	if err := auth.IsAuthorized(req.Context(), "viewAdmin"); err != nil {
-		util.RequestError(req.Context(), res, err)
+	if !isAuthenticatedWithPermissions(res, req, []string{"viewAdmin"}) {
 		return
 	}
 
@@ -180,14 +188,7 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
-	if !auth.IsAuthenticated(req.Context()) {
-		err := util.AuthenticationError("Not authorized")
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	if err := auth.IsAuthorized(req.Context(), "viewAdmin"); err != nil {
-		util.RequestError(req.Context(), res, err)
+	if !isAuthenticatedWithPermissions(res, req, []string{"modifyAdmin"}) {
 		return
 	}
 
@@ -219,14 +220,7 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
-	if !auth.IsAuthenticated(req.Context()) {
-		err := util.AuthenticationError("Not authorized")
-		util.RequestError(req.Context(), res, err)
-		return
-	}
-
-	if err := auth.IsAuthorized(req.Context(), "viewAdmin"); err != nil {
-		util.RequestError(req.Context(), res, err)
+	if !isAuthenticatedWithPermissions(res, req, []string{"modifyAdmin"}) {
 		return
 	}
 

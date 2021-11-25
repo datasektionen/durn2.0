@@ -161,7 +161,7 @@ func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
-	perms := []string{util.VIEW_ADMIN}
+	perms := []string{auth.VIEW_ADMIN}
 	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
@@ -188,7 +188,7 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
-	perms := []string{util.MODIFY_ADMIN}
+	perms := []string{auth.MODIFY_ADMIN}
 	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
@@ -218,7 +218,7 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
-	perms := []string{util.MODIFY_ADMIN}
+	perms := []string{auth.MODIFY_ADMIN}
 	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}

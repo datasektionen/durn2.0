@@ -11,12 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Permission names
-const (
-	VIEW_ADMIN   = "viewAdmin"
-	MODIFY_ADMIN = "modifyAdmin"
-)
-
 // Key for user id in context
 const UserKey string = "user"
 

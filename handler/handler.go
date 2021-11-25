@@ -12,7 +12,7 @@ import (
 	_ "github.com/google/uuid"
 )
 
-// isAuthenticatedWithPermissions checks that a the requester is authenticated
+// isAuthenticatedWithPermissions checks that the requester is authenticated
 // and has the specified permissions. Writes the proper response to user if not
 func isAuthenticatedWithPermissions(res http.ResponseWriter, req *http.Request, perms []string) bool {
 	if !auth.IsAuthenticated(req.Context()) {
@@ -161,7 +161,7 @@ func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
-	perms := []string{auth.VIEW_ADMIN}
+	perms := []string{auth.AdminView}
 	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
@@ -172,12 +172,12 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var response_data struct {
-		Voters []models.Voter
+	var responseData struct {
+		Voters []models.Voter `json:"voters"`
 	}
 
-	response_data.Voters = voters
-	if err := util.WriteJson(res, response_data); err != nil {
+	responseData.Voters = voters
+	if err := util.WriteJson(res, responseData); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
@@ -188,22 +188,22 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
-	perms := []string{auth.MODIFY_ADMIN}
+	perms := []string{auth.AdminModify}
 	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
 
-	var request_data struct {
-		Voters []string
+	var requestData struct {
+		Voters []string `json:"voters"`
 	}
 
-	if err := util.ReadJson(req, &request_data); err != nil {
+	if err := util.ReadJson(req, &requestData); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
 
 	var voters []models.Voter
-	for _, voter := range request_data.Voters {
+	for _, voter := range requestData.Voters {
 		voters = append(voters, models.Voter(voter))
 	}
 
@@ -218,22 +218,22 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
-	perms := []string{auth.MODIFY_ADMIN}
+	perms := []string{auth.AdminModify}
 	if !isAuthenticatedWithPermissions(res, req, perms) {
 		return
 	}
 
-	var request_data struct {
-		Voters []string
+	var requestData struct {
+		Voters []string `json:"voters"`
 	}
 
-	if err := util.ReadJson(req, &request_data); err != nil {
+	if err := util.ReadJson(req, &requestData); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
 
 	var voters []models.Voter
-	for _, voter := range request_data.Voters {
+	for _, voter := range requestData.Voters {
 		voters = append(voters, models.Voter(voter))
 	}
 

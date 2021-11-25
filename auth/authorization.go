@@ -16,8 +16,8 @@ const apiUrlFormat string = "https://pls.datasektionen.se/api/user/%s/durn/%s"
 
 // Permission names
 const (
-	VIEW_ADMIN   = "viewAdmin"
-	MODIFY_ADMIN = "modifyAdmin"
+	AdminView   = "viewAdmin"
+	AdminModify = "modifyAdmin"
 )
 
 func IsAuthorized(ctx context.Context, permission string) error {

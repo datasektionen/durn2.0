@@ -2,8 +2,9 @@ package util
 
 import (
 	"context"
-	rl "durn2.0/requestLog"
 	"net/http"
+
+	rl "durn2.0/requestLog"
 )
 
 func RequestError(ctx context.Context, res http.ResponseWriter, err error) {
@@ -18,7 +19,6 @@ func RequestError(ctx context.Context, res http.ResponseWriter, err error) {
 	} else {
 		status = http.StatusInternalServerError
 	}
-
 
 	rl.Warning(ctx, err.Error())
 	res.WriteHeader(status)
@@ -90,3 +90,16 @@ func (c ConflictError) Headers() map[string]string {
 	return map[string]string{}
 }
 
+type ServerError string
+
+func (a ServerError) Error() string {
+	return string(a)
+}
+
+func (a ServerError) StatusCode() int {
+	return http.StatusInternalServerError
+}
+
+func (a ServerError) Headers() map[string]string {
+	return map[string]string{}
+}

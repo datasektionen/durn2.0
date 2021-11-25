@@ -4,9 +4,32 @@ import (
 	"net/http"
 	_ "strings"
 
-	_ "durn2.0/durn"
+	"durn2.0/auth"
+	db "durn2.0/database"
+	"durn2.0/durn"
+	"durn2.0/models"
+	"durn2.0/util"
 	_ "github.com/google/uuid"
 )
+
+// isAuthenticatedWithPermissions checks that the requester is authenticated
+// and has the specified permissions. Writes the proper response to user if not
+func isAuthenticatedWithPermissions(res http.ResponseWriter, req *http.Request, perms []string) bool {
+	if !auth.IsAuthenticated(req.Context()) {
+		err := util.AuthenticationError("Not authorized")
+		util.RequestError(req.Context(), res, err)
+		return false
+	}
+
+	for _, perm := range perms {
+		if err := auth.IsAuthorized(req.Context(), perm); err != nil {
+			util.RequestError(req.Context(), res, err)
+			return false
+		}
+	}
+
+	return true
+}
 
 // GetElections will fetch all elections in the system that the current
 // user is authorized to view. Will include election info.
@@ -138,7 +161,26 @@ func DeleteCandidate(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: GET /api/voters
 func GetValidVoters(res http.ResponseWriter, req *http.Request) {
+	perms := []string{auth.AdminView}
+	if !isAuthenticatedWithPermissions(res, req, perms) {
+		return
+	}
 
+	voters, err := db.QueryAllVoters()
+	if err != nil {
+		util.RequestError(req.Context(), res, util.ServerError(err.Error()))
+		return
+	}
+
+	var responseData struct {
+		Voters []models.Voter `json:"voters"`
+	}
+
+	responseData.Voters = voters
+	if err := util.WriteJson(res, responseData); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 }
 
 // AddValidVoters adds a list of users(emails) to the list of valid voters
@@ -146,7 +188,29 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/add
 func AddValidVoters(res http.ResponseWriter, req *http.Request) {
+	perms := []string{auth.AdminModify}
+	if !isAuthenticatedWithPermissions(res, req, perms) {
+		return
+	}
 
+	var requestData struct {
+		Voters []string `json:"voters"`
+	}
+
+	if err := util.ReadJson(req, &requestData); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	var voters []models.Voter
+	for _, voter := range requestData.Voters {
+		voters = append(voters, models.Voter(voter))
+	}
+
+	if err := durn.AddValidVoters(req.Context(), voters); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 }
 
 // RemoveValidVoters removes users from the list of valid voters.
@@ -154,6 +218,29 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 // Requires admin privileges
 // Endpoint: PUT /api/voters/remove
 func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
+	perms := []string{auth.AdminModify}
+	if !isAuthenticatedWithPermissions(res, req, perms) {
+		return
+	}
+
+	var requestData struct {
+		Voters []string `json:"voters"`
+	}
+
+	if err := util.ReadJson(req, &requestData); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
+
+	var voters []models.Voter
+	for _, voter := range requestData.Voters {
+		voters = append(voters, models.Voter(voter))
+	}
+
+	if err := db.DeleteVoters(voters); err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
+	}
 
 }
 

@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"durn2.0/conf"
-	"durn2.0/durn"
+	"durn2.0/models"
 )
 
 var mutex sync.Mutex
@@ -37,7 +37,7 @@ func DisconnectDB() {
 	db.Close()
 }
 
-func QueryAllVoters() ([]durn.Voter, error) {
+func QueryAllVoters() ([]models.Voter, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -47,10 +47,10 @@ func QueryAllVoters() ([]durn.Voter, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var res []durn.Voter
+	var res []models.Voter
 
 	for rows.Next() {
-		var username durn.Voter
+		var username models.Voter
 		err = rows.Scan(&username)
 		res = append(res, username)
 	}
@@ -58,7 +58,53 @@ func QueryAllVoters() ([]durn.Voter, error) {
 	return res, nil
 }
 
-func InsertElection(e durn.Election) error {
+// InsertVoters inserts provided voters into the database, but first queries the database
+// to check if they are already added, in which case they are skipped
+func InsertVoters(voters []models.Voter) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	query := `SELECT * FROM valid_voters`
+	rows, err := db.Query(query)
+	if err != nil {
+		return err
+	}
+
+	alreadyAdded := map[models.Voter]bool{}
+	for rows.Next() {
+		var voter models.Voter
+		if err := rows.Scan(&voter); err != nil {
+			return err
+		}
+		alreadyAdded[voter] = true
+	}
+
+	for _, voter := range voters {
+		if !alreadyAdded[voter] {
+			if _, err = db.Exec(`INSERT INTO valid_voters VALUES ($1)`, voter); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func DeleteVoters(voters []models.Voter) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	for _, voter := range voters {
+		query := `DELETE FROM valid_voters WHERE email = $1`
+		if _, err := db.Exec(query, voter); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func InsertElection(e models.Election) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -71,13 +117,12 @@ func InsertElection(e durn.Election) error {
 	return nil
 }
 
-func InsertCandidate(e durn.Candidate) error {
+func InsertCandidate(e models.Candidate) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	query := `INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)`
-	_, err := db.Exec(query, e.Id, e.Name, e.Presentation)
-	if err != nil {
+	if _, err := db.Exec(query, e.Id, e.Name, e.Presentation); err != nil {
 		println(err)
 		return errors.New("Failure while inserting into Candidates, see logs for more info")
 	}

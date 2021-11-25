@@ -1,10 +1,35 @@
 package durn
 
 import (
-	_ "context"
-	_ "sync"
+	"context"
+	"fmt"
+	"regexp"
 
-	_ "durn2.0/auth"
-	_ "durn2.0/util"
-	_ "github.com/google/uuid"
+	db "durn2.0/database"
+	"durn2.0/models"
+	rl "durn2.0/requestLog"
+	"durn2.0/util"
 )
+
+// AddValidVoters checks that provided voters are entered as valid emails, and if that
+// is the case inserts them into the database
+func AddValidVoters(ctx context.Context, voters []models.Voter) error {
+	mailRegex := "[^@]+@kth\\.se"
+	for _, voter := range voters {
+		matches, err := regexp.MatchString(mailRegex, string(voter))
+		if !matches {
+			return util.BadRequestError(fmt.Sprintf("Trying to add email address '%s'", voter))
+		}
+		if err != nil {
+			rl.Warning(ctx, err.Error())
+			return util.ServerError("An internal server error occurred")
+		}
+	}
+
+	if err := db.InsertVoters(voters); err != nil {
+		rl.Warning(ctx, err.Error())
+		return util.ServerError("Error while inserting into database")
+	}
+
+	return nil
+}

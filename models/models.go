@@ -1,4 +1,4 @@
-package durn
+package models
 
 import (
 	"time"

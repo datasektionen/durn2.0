@@ -18,7 +18,7 @@ type Election struct {
 	Votes      []Vote       ``
 }
 
-type Valid_Voter struct {
+type ValidVoter struct {
 	Email string `gorm:"primaryKey"`
 }
 
@@ -28,11 +28,11 @@ type Candidate struct {
 	Presentation string    `gorm:"not null"`
 }
 
-type Casted_Vote struct {
-	VoterID    uuid.UUID   `gorm:"primaryKey"`
-	ElectionID uuid.UUID   `gorm:"primaryKey"`
-	Voter      Valid_Voter `gorm:"foreignKey:VoterID"`
-	Election   Election    `gorm:"foreignKey:ElectionID"`
+type CastedVote struct {
+	VoterID    uuid.UUID  `gorm:"primaryKey"`
+	ElectionID uuid.UUID  `gorm:"primaryKey"`
+	Voter      ValidVoter `gorm:"foreignKey:VoterID"`
+	Election   Election   `gorm:"foreignKey:ElectionID"`
 }
 
 type Vote struct {

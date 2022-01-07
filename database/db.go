@@ -28,9 +28,9 @@ func CreateDBConnection() error {
 		return err
 	}
 	database.AutoMigrate(&Election{})
-	database.AutoMigrate(&Valid_Voter{})
+	database.AutoMigrate(&ValidVoter{})
 	database.AutoMigrate(&Candidate{})
-	database.AutoMigrate(&Casted_Vote{})
+	database.AutoMigrate(&CastedVote{})
 	database.AutoMigrate(&Vote{})
 
 	db = database

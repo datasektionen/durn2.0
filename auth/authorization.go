@@ -14,6 +14,12 @@ import (
 
 const apiUrlFormat string = "https://pls.datasektionen.se/api/user/%s/durn/%s"
 
+// Permission names
+const (
+	AdminView   = "viewAdmin"
+	AdminModify = "modifyAdmin"
+)
+
 func IsAuthorized(ctx context.Context, permission string) error {
 	user, ok := util.User(ctx)
 	if !ok {

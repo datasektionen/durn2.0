@@ -166,7 +166,7 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	voters, err := durn.QueryAllVoters(req.Context())
+	voters, err := durn.GetAllValidVoters(req.Context())
 	if err != nil {
 		util.RequestError(req.Context(), res, util.ServerError(err.Error()))
 		return

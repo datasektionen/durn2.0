@@ -11,7 +11,8 @@ import (
 )
 
 // AddValidVoters checks that provided voters are entered as valid emails, and
-// if that is the case inserts them into the database
+// if that is the case inserts them into the database.
+// Returns all voters for which it failed
 func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter, error) {
 	mailRegex := "[^@]+@kth\\.se"
 	dbVoters := []db.ValidVoter{}
@@ -45,7 +46,8 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 	return failedVoters, nil
 }
 
-func QueryAllVoters(ctx context.Context) ([]models.Voter, error) {
+// GetAllValidVoters fetches all valid voters from the database
+func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 	dbConn := db.TakeDB()
 	defer db.ReleaseDB()
 

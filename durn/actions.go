@@ -18,8 +18,23 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 	defer db.ReleaseDB()
 
 	mailRegex := "[^@]+@kth\\.se"
-	dbVoters := []db.ValidVoter{}
+	votersToInsert := []db.ValidVoter{}
+	currentVoters := []db.ValidVoter{}
 	failedVoters := []models.Voter{}
+
+	voterExists := func(email models.Voter) bool {
+		for _, voter := range currentVoters {
+			if voter.Email == string(email) {
+				return true
+			}
+		}
+		return false
+	}
+
+	if result := dbConn.Find(&currentVoters); result.Error != nil {
+		rl.Warning(ctx, result.Error.Error())
+		return nil, util.ServerError("An internal server error occurred")
+	}
 
 	for _, voter := range voters {
 		matches, err := regexp.MatchString(mailRegex, string(voter))
@@ -30,17 +45,18 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 
 		if !matches {
 			failedVoters = append(failedVoters, voter)
-		} else {
-			dbVoters = append(dbVoters, db.ValidVoter{
+		} else if !voterExists(voter) {
+			votersToInsert = append(votersToInsert, db.ValidVoter{
 				Email: string(voter),
 			})
 		}
 	}
 
-	result := dbConn.Create(&dbVoters)
-	if result.Error != nil {
-		rl.Warning(ctx, result.Error.Error())
-		return nil, util.ServerError("An internal server error occurred")
+	if len(votersToInsert) > 0 {
+		if result := dbConn.Create(&votersToInsert); result.Error != nil {
+			rl.Warning(ctx, result.Error.Error())
+			return nil, util.ServerError("An internal server error occurred")
+		}
 	}
 
 	return failedVoters, nil
@@ -54,8 +70,7 @@ func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 	var voters []models.Voter
 	var validVoters []db.ValidVoter
 
-	result := dbConn.Find(&validVoters)
-	if result.Error != nil {
+	if result := dbConn.Find(&validVoters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
 		return nil, util.ServerError("An internal server error occurred")
 	}
@@ -72,8 +87,7 @@ func DeleteValidVoters(ctx context.Context, voters []models.Voter) error {
 	defer db.ReleaseDB()
 	var validVoters []db.ValidVoter
 
-	result := dbConn.Delete(&validVoters, voters)
-	if result.Error != nil {
+	if result := dbConn.Delete(&validVoters, voters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
 		return util.ServerError("An internal server error occurred")
 	}

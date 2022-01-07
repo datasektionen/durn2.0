@@ -90,5 +90,4 @@ func main() {
 
 	log.Printf("Starting server on %s\n", c.Addr)
 	log.Fatal(server.ListenAndServe())
-
 }

@@ -1,10 +1,12 @@
 package conf
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
 
+	rl "durn2.0/requestLog"
 	dotenv "github.com/joho/godotenv"
 )
 
@@ -22,7 +24,8 @@ type Configuration struct {
 func readEnvRequired(varName string) string {
 	val, precent := os.LookupEnv(varName)
 	if !precent {
-		panic(fmt.Sprintf("panic: Env var '%s' not set", varName))
+		rl.Fatal(context.TODO(), fmt.Sprintf("panic: Env var '%s' not set", varName))
+		panic("exiting")
 	}
 	return val
 }
@@ -42,12 +45,13 @@ func readEnvInteger(varName string, fallback int) int {
 	}
 	num, err := strconv.Atoi(val)
 	if err != nil {
-		panic(fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
+		rl.Fatal(context.TODO(), fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
+		panic("exiting")
 	}
 	return num
 }
 
-func readEnvBool(varName string, fallback bool) bool {
+func readEnvBoolean(varName string, fallback bool) bool {
 	val, precent := os.LookupEnv(varName)
 	if !precent {
 		return fallback
@@ -57,7 +61,7 @@ func readEnvBool(varName string, fallback bool) bool {
 
 func ReadConfiguration() Configuration {
 	if err := dotenv.Load(); err != nil {
-		fmt.Println("No .env found")
+		rl.Info(context.TODO(), "No .env found")
 	}
 
 	return Configuration{
@@ -68,6 +72,6 @@ func ReadConfiguration() Configuration {
 		DBUser:      readEnvRequired("DB_USER"),
 		DBPassword:  readEnvRequired("DB_PASSWORD"),
 		DBName:      readEnvRequired("DB_NAME"),
-		SkipAuth:    readEnvBool("SKIP_AUTH", false),
+		SkipAuth:    readEnvBoolean("SKIP_AUTH", false),
 	}
 }

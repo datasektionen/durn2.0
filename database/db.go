@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"durn2.0/conf"
-	"durn2.0/models"
 )
 
 const dsnFormat = "host=%s port=%d user='%s' password='%s' dbname='%s' sslmode=disable"
@@ -46,29 +45,4 @@ func TakeDB() *gorm.DB {
 
 func ReleaseDB() {
 	mutex.Unlock()
-}
-
-func InsertElection(e models.Election) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	// query := `INSERT INTO Elections(id, name, published, finalized, opentime, closetime) VALUES ($1, $2, $3, $4, $5, $6)`
-	// _, err := db.Exec(query, e.Id, e.Name, e.IsOpen, e.IsFinalized, e.OpenTime, e.CloseTime)
-	// if err != nil {
-	// 	println(err)
-	// 	return errors.New("Failure while inserting into Elections, see logs for more info")
-	// }
-	return nil
-}
-
-func InsertCandidate(e models.Candidate) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	// query := `INSERT INTO Candidates(id, name, presentation) VALUES ($1, $2, $3)`
-	// if _, err := db.Exec(query, e.Id, e.Name, e.Presentation); err != nil {
-	// 	println(err)
-	// 	return errors.New("Failure while inserting into Candidates, see logs for more info")
-	// }
-	return nil
 }

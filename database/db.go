@@ -12,6 +12,8 @@ import (
 	"durn2.0/models"
 )
 
+const dsnFormat = "host=%s port=%d user='%s' password='%s' dbname='%s' sslmode=disable"
+
 var mutex sync.Mutex
 var db *gorm.DB
 
@@ -22,7 +24,7 @@ func CreateDBConnection() error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	dsn := fmt.Sprintf("host=%s port=%d user='%s' password='%s' dbname='%s' sslmode=disable", c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName)
+	dsn := fmt.Sprintf(dsnFormat, c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName)
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return err

@@ -35,7 +35,6 @@ func main() {
 	}
 
 	db.CreateDBConnection()
-	defer db.DisconnectDB()
 
 	r := mux.NewRouter()
 	r.Use(mw.Track)

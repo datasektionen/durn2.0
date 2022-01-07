@@ -48,62 +48,6 @@ func ReleaseDB() {
 	mutex.Unlock()
 }
 
-func QueryAllVoters() ([]models.Voter, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	// query := `SELECT * FROM valid_voters`
-	// rows, err := db.Query(query)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	// var res []models.Voter
-
-	// for rows.Next() {
-	// 	var username models.Voter
-	// 	err = rows.Scan(&username)
-	// 	res = append(res, username)
-	// }
-
-	// return res, nil
-	return nil, nil
-}
-
-// InsertVoters inserts provided voters into the database, but first queries the database
-// to check if they are already added, in which case they are skipped
-func InsertVoters(voters []models.Voter) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	// db.create()
-
-	// query := `SELECT * FROM valid_voters`
-	// rows, err := db.Query(query)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// alreadyAdded := map[models.Voter]bool{}
-	// for rows.Next() {
-	// 	var voter models.Voter
-	// 	if err := rows.Scan(&voter); err != nil {
-	// 		return err
-	// 	}
-	// 	alreadyAdded[voter] = true
-	// }
-
-	// for _, voter := range voters {
-	// 	if !alreadyAdded[voter] {
-	// 		if _, err = db.Exec(`INSERT INTO valid_voters VALUES ($1)`, voter); err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// }
-
-	return nil
-}
-
 func DeleteVoters(voters []models.Voter) error {
 	mutex.Lock()
 	defer mutex.Unlock()

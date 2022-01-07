@@ -166,7 +166,7 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	voters, err := db.QueryAllVoters()
+	voters, err := durn.QueryAllVoters(req.Context())
 	if err != nil {
 		util.RequestError(req.Context(), res, util.ServerError(err.Error()))
 		return
@@ -201,11 +201,6 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
-
-	// var voters []models.Voter
-	// for _, voter := range requestData.Voters {
-	// 	voters = append(voters, models.Voter(voter))
-	// }
 
 	failed, err := durn.AddValidVoters(req.Context(), requestData.Voters)
 	if err != nil {

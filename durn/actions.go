@@ -36,7 +36,31 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 	dbConn := db.TakeDB()
 	defer db.ReleaseDB()
 
-	dbConn.Create(&dbVoters)
+	result := dbConn.Create(&dbVoters)
+	if result.Error != nil {
+		rl.Warning(ctx, result.Error.Error())
+		return nil, util.ServerError("An internal server error occurred")
+	}
 
 	return failedVoters, nil
+}
+
+func QueryAllVoters(ctx context.Context) ([]models.Voter, error) {
+	dbConn := db.TakeDB()
+	defer db.ReleaseDB()
+
+	var voters []models.Voter
+	var validVoters []db.ValidVoter
+	result := dbConn.Find(&validVoters)
+
+	if result.Error != nil {
+		rl.Warning(ctx, result.Error.Error())
+		return nil, util.ServerError("An internal server error occurred")
+	}
+
+	for _, voter := range validVoters {
+		voters = append(voters, models.Voter(voter.Email))
+	}
+
+	return voters, nil
 }

@@ -14,6 +14,9 @@ import (
 // if that is the case inserts them into the database.
 // Returns all voters for which it failed
 func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter, error) {
+	dbConn := db.TakeDB()
+	defer db.ReleaseDB()
+
 	mailRegex := "[^@]+@kth\\.se"
 	dbVoters := []db.ValidVoter{}
 	failedVoters := []models.Voter{}
@@ -34,9 +37,6 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 		}
 	}
 
-	dbConn := db.TakeDB()
-	defer db.ReleaseDB()
-
 	result := dbConn.Create(&dbVoters)
 	if result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
@@ -53,8 +53,8 @@ func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 
 	var voters []models.Voter
 	var validVoters []db.ValidVoter
-	result := dbConn.Find(&validVoters)
 
+	result := dbConn.Find(&validVoters)
 	if result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
 		return nil, util.ServerError("An internal server error occurred")
@@ -65,4 +65,18 @@ func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 	}
 
 	return voters, nil
+}
+
+func DeleteValidVoters(ctx context.Context, voters []models.Voter) error {
+	dbConn := db.TakeDB()
+	defer db.ReleaseDB()
+	var validVoters []db.ValidVoter
+
+	result := dbConn.Delete(&validVoters, voters)
+	if result.Error != nil {
+		rl.Warning(ctx, result.Error.Error())
+		return util.ServerError("An internal server error occurred")
+	}
+
+	return nil
 }

@@ -5,7 +5,6 @@ import (
 	_ "strings"
 
 	"durn2.0/auth"
-	db "durn2.0/database"
 	"durn2.0/durn"
 	"durn2.0/models"
 	"durn2.0/util"
@@ -243,7 +242,7 @@ func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 		voters = append(voters, models.Voter(voter))
 	}
 
-	if err := db.DeleteVoters(voters); err != nil {
+	if err := durn.DeleteValidVoters(req.Context(), voters); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}

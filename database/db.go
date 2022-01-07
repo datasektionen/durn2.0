@@ -48,20 +48,6 @@ func ReleaseDB() {
 	mutex.Unlock()
 }
 
-func DeleteVoters(voters []models.Voter) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	// for _, voter := range voters {
-	// 	query := `DELETE FROM valid_voters WHERE email = $1`
-	// 	if _, err := db.Exec(query, voter); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	return nil
-}
-
 func InsertElection(e models.Election) error {
 	mutex.Lock()
 	defer mutex.Unlock()

@@ -1,8 +1,11 @@
 package conf
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+
+	dotenv "github.com/joho/godotenv"
 )
 
 type Configuration struct {
@@ -12,28 +15,49 @@ type Configuration struct {
 	DBUser      string
 	DBPassword  string
 	DBName      string
+	DBHost      string
+}
+
+func readEnvRequired(varName string) string {
+	val, precent := os.LookupEnv(varName)
+	if !precent {
+		panic(fmt.Sprintf("panic: Env var '%s' not set", varName))
+	}
+	return val
+}
+
+func readEnvFallback(varName string, fallback string) string {
+	val, precent := os.LookupEnv(varName)
+	if !precent {
+		return fallback
+	}
+	return val
+}
+
+func readEnvInteger(varName string, fallback int) int {
+	val, precent := os.LookupEnv(varName)
+	if !precent {
+		return fallback
+	}
+	num, err := strconv.Atoi(val)
+	if err != nil {
+		panic(fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
+	}
+	return num
 }
 
 func ReadConfiguration() Configuration {
-	addr := os.Getenv("ADDR")
-	loginApiKey := os.Getenv("LOGIN_API_KEY")
-
-	port := os.Getenv("DB_PORT")
-	dbPort := 5432
-	if port != "" {
-		dbPort, _ = strconv.Atoi(port)
+	if err := dotenv.Load(); err != nil {
+		fmt.Println("No .env found")
 	}
 
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-
 	return Configuration{
-		Addr:        addr,
-		LoginApiKey: loginApiKey,
-		DBPort:      dbPort,
-		DBUser:      dbUser,
-		DBPassword:  dbPassword,
-		DBName:      dbName,
+		Addr:        readEnvFallback("ADDR", "localhost"),
+		LoginApiKey: readEnvRequired("LOGIN_API_KEY"),
+		DBHost:      readEnvFallback("DB_HOST", "localhost"),
+		DBPort:      readEnvInteger("DB_PORT", 5432),
+		DBUser:      readEnvRequired("DB_USER"),
+		DBPassword:  readEnvRequired("DB_PASSWORD"),
+		DBName:      readEnvRequired("DB_NAME"),
 	}
 }

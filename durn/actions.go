@@ -22,18 +22,20 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 	currentVoters := []db.ValidVoter{}
 	failedVoters := []models.Voter{}
 
-	voterExists := func(email models.Voter) bool {
-		for _, voter := range currentVoters {
-			if voter.Email == string(email) {
-				return true
-			}
-		}
-		return false
-	}
-
 	if result := dbConn.Find(&currentVoters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
 		return nil, util.ServerError("An internal server error occurred")
+	}
+
+	existingVoters := make(map[models.Voter]bool)
+
+	for _, voter := range currentVoters {
+		existingVoters[models.Voter(voter.Email)] = true
+	}
+
+	voterExists := func(email models.Voter) bool {
+		_, c := existingVoters[email]
+		return c
 	}
 
 	for _, voter := range voters {

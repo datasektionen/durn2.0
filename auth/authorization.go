@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"durn2.0/conf"
 	rl "durn2.0/requestLog"
 	"durn2.0/util"
 )
@@ -21,6 +22,12 @@ const (
 )
 
 func IsAuthorized(ctx context.Context, permission string) error {
+
+	c := conf.ReadConfiguration()
+	if c.SkipAuth {
+		return nil
+	}
+
 	user, ok := util.User(ctx)
 	if !ok {
 		return errors.New("user not found in context")

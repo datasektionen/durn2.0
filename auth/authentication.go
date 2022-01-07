@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"durn2.0/conf"
 	rl "durn2.0/requestLog"
 	"durn2.0/util"
 )
@@ -21,6 +22,11 @@ type AuthenticationMiddleware struct {
 
 func (a *AuthenticationMiddleware) authenticate(ctx context.Context, token string) (*AuthenticatedUser, error) {
 	url := fmt.Sprintf(loginApiUrlFormat, token, a.ApiKey)
+
+	c := conf.ReadConfiguration()
+	if c.SkipAuth {
+		return &AuthenticatedUser{}, nil
+	}
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -55,6 +61,7 @@ func (a *AuthenticationMiddleware) authenticate(ctx context.Context, token strin
 
 func (a *AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+
 		ctx := req.Context()
 
 		authHeader := req.Header.Get("Authorization")

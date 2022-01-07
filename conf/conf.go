@@ -16,6 +16,7 @@ type Configuration struct {
 	DBPassword  string
 	DBName      string
 	DBHost      string
+	SkipAuth    bool
 }
 
 func readEnvRequired(varName string) string {
@@ -46,18 +47,27 @@ func readEnvInteger(varName string, fallback int) int {
 	return num
 }
 
+func readEnvBool(varName string, fallback bool) bool {
+	val, precent := os.LookupEnv(varName)
+	if !precent {
+		return fallback
+	}
+	return val == "true"
+}
+
 func ReadConfiguration() Configuration {
 	if err := dotenv.Load(); err != nil {
 		fmt.Println("No .env found")
 	}
 
 	return Configuration{
-		Addr:        readEnvFallback("ADDR", "localhost"),
+		Addr:        readEnvFallback("ADDR", "localhost:8080"),
 		LoginApiKey: readEnvRequired("LOGIN_API_KEY"),
 		DBHost:      readEnvFallback("DB_HOST", "localhost"),
 		DBPort:      readEnvInteger("DB_PORT", 5432),
 		DBUser:      readEnvRequired("DB_USER"),
 		DBPassword:  readEnvRequired("DB_PASSWORD"),
 		DBName:      readEnvRequired("DB_NAME"),
+		SkipAuth:    readEnvBool("SKIP_AUTH", false),
 	}
 }

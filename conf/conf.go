@@ -61,7 +61,7 @@ func readEnvBoolean(varName string, fallback bool) bool {
 }
 
 var conf Configuration
-var initialized bool = false
+var initialized = false
 
 func GetConfiguration() Configuration {
 

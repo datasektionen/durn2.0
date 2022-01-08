@@ -59,12 +59,20 @@ func readEnvBoolean(varName string, fallback bool) bool {
 	return val == "true"
 }
 
-func ReadConfiguration() Configuration {
+var conf Configuration
+var intialized bool = false
+
+func GetConfiguration() Configuration {
+
+	if intialized {
+		return conf
+	}
+
 	if err := dotenv.Load(); err != nil {
 		rl.Info(context.Background(), "No .env found")
 	}
 
-	return Configuration{
+	conf = Configuration{
 		Addr:        readEnvFallback("ADDR", "localhost:8080"),
 		LoginApiKey: readEnvRequired("LOGIN_API_KEY"),
 		DBHost:      readEnvFallback("DB_HOST", "localhost"),
@@ -74,4 +82,7 @@ func ReadConfiguration() Configuration {
 		DBName:      readEnvRequired("DB_NAME"),
 		SkipAuth:    readEnvBoolean("SKIP_AUTH", false),
 	}
+
+	intialized = true
+	return conf
 }

@@ -23,7 +23,7 @@ type AuthenticationMiddleware struct {
 func (a *AuthenticationMiddleware) authenticate(ctx context.Context, token string) (*AuthenticatedUser, error) {
 	url := fmt.Sprintf(loginApiUrlFormat, token, a.ApiKey)
 
-	c := conf.ReadConfiguration()
+	c := conf.GetConfiguration()
 	if c.SkipAuth {
 		return &AuthenticatedUser{}, nil
 	}

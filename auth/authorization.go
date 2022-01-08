@@ -23,7 +23,7 @@ const (
 
 func IsAuthorized(ctx context.Context, permission string) error {
 
-	c := conf.ReadConfiguration()
+	c := conf.GetConfiguration()
 	if c.SkipAuth {
 		return nil
 	}

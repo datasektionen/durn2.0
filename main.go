@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	c := conf.ReadConfiguration()
+	c := conf.GetConfiguration()
 
 	rl.SetPrefixFn(func(ctx context.Context) string {
 		reqId, ok := util.ReqId(ctx)

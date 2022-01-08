@@ -18,7 +18,7 @@ var db *gorm.DB
 // CreateDBConnection Initializes the database connection using
 // the connection details specified in env-vars
 func CreateDBConnection() error {
-	c := conf.ReadConfiguration()
+	c := conf.GetConfiguration()
 	mutex.Lock()
 	defer mutex.Unlock()
 

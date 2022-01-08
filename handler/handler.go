@@ -5,7 +5,6 @@ import (
 	_ "strings"
 
 	"durn2.0/auth"
-	db "durn2.0/database"
 	"durn2.0/durn"
 	"durn2.0/models"
 	"durn2.0/util"
@@ -166,7 +165,7 @@ func GetValidVoters(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	voters, err := db.QueryAllVoters()
+	voters, err := durn.GetAllValidVoters(req.Context())
 	if err != nil {
 		util.RequestError(req.Context(), res, util.ServerError(err.Error()))
 		return
@@ -194,7 +193,7 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 	}
 
 	var requestData struct {
-		Voters []string `json:"voters"`
+		Voters []models.Voter `json:"voters"`
 	}
 
 	if err := util.ReadJson(req, &requestData); err != nil {
@@ -202,12 +201,18 @@ func AddValidVoters(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var voters []models.Voter
-	for _, voter := range requestData.Voters {
-		voters = append(voters, models.Voter(voter))
+	failed, err := durn.AddValidVoters(req.Context(), requestData.Voters)
+	if err != nil {
+		util.RequestError(req.Context(), res, err)
+		return
 	}
 
-	if err := durn.AddValidVoters(req.Context(), voters); err != nil {
+	var responseData struct {
+		Voters []models.Voter `json:"failed"`
+	}
+
+	responseData.Voters = failed
+	if err := util.WriteJson(res, responseData); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}
@@ -237,7 +242,7 @@ func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 		voters = append(voters, models.Voter(voter))
 	}
 
-	if err := db.DeleteVoters(voters); err != nil {
+	if err := durn.DeleteValidVoters(req.Context(), voters); err != nil {
 		util.RequestError(req.Context(), res, err)
 		return
 	}

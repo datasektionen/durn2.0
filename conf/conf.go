@@ -1,12 +1,11 @@
 package conf
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
-	rl "durn2.0/requestLog"
 	dotenv "github.com/joho/godotenv"
 )
 
@@ -24,8 +23,7 @@ type Configuration struct {
 func readEnvRequired(varName string) string {
 	val, precent := os.LookupEnv(varName)
 	if !precent {
-		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' not set", varName))
-		panic("exiting")
+		log.Fatal(fmt.Sprintf("panic: Env var '%s' not set", varName))
 	}
 	return val
 }
@@ -45,8 +43,7 @@ func readEnvInteger(varName string, fallback int) int {
 	}
 	num, err := strconv.Atoi(val)
 	if err != nil {
-		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' could not be parsed as integer", varName))
-		panic("exiting")
+		log.Fatal(fmt.Sprintf("panic: Env var '%s' could not be parsed as integer", varName))
 	}
 	return num
 }
@@ -58,7 +55,7 @@ func readEnvBoolean(varName string, fallback bool) bool {
 	}
 	bool, err := strconv.ParseBool(val)
 	if err != nil {
-		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' could not be parsed as boolean", varName))
+		log.Fatal(fmt.Sprintf("panic: Env var '%s' could not be parsed as boolean", varName))
 	}
 	return bool
 }
@@ -73,7 +70,7 @@ func GetConfiguration() Configuration {
 	}
 
 	if err := dotenv.Load(); err != nil {
-		rl.Info(context.Background(), "No .env found")
+		log.Println("No .env found")
 	}
 
 	conf = Configuration{

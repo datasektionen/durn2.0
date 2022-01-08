@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -28,12 +27,11 @@ func CreateDBConnection() error {
 	if err != nil {
 		return err
 	}
-	database.AutoMigrate(&Election{})
-	database.AutoMigrate(&ValidVoter{})
-	database.AutoMigrate(&Candidate{})
-	database.AutoMigrate(&CastedVote{})
-	database.AutoMigrate(&Vote{})
-	database.AutoMigrate(&Ranking{})
+
+	err = database.AutoMigrate(&Election{}, &ValidVoter{}, &Candidate{}, &CastedVote{}, &Vote{}, &Ranking{})
+	if err != nil {
+		return err
+	}
 
 	db = database
 	return nil

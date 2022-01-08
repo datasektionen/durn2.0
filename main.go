@@ -34,7 +34,11 @@ func main() {
 		ApiKey: c.LoginApiKey,
 	}
 
-	db.CreateDBConnection()
+	if err := db.CreateDBConnection(); err != nil {
+		rl.Fatal(context.Background(), "Error creating db connection")
+		rl.Fatal(context.Background(), err.Error())
+		panic("exiting")
+	}
 
 	r := mux.NewRouter()
 	r.Use(mw.Track)

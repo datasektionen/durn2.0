@@ -44,7 +44,7 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 			clause.OnConflict{DoNothing: true},
 		).Create(&votersToInsert); result.Error != nil {
 			rl.Warning(ctx, result.Error.Error())
-			return nil, util.ServerError("An internal server error occurred")
+			return nil, util.ServerError("An internal server error occurred when inserting into database")
 		}
 	}
 
@@ -61,7 +61,7 @@ func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 
 	if result := dbConn.Find(&validVoters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
-		return nil, util.ServerError("An internal server error occurred")
+		return nil, util.ServerError("An internal server error occurred when fetching from database")
 	}
 
 	for _, voter := range validVoters {
@@ -78,7 +78,7 @@ func DeleteValidVoters(ctx context.Context, voters []models.Voter) error {
 
 	if result := dbConn.Delete(&validVoters, voters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
-		return util.ServerError("An internal server error occurred")
+		return util.ServerError("An internal server error occurred when removing from database")
 	}
 
 	return nil

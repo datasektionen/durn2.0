@@ -46,8 +46,8 @@ type Vote struct {
 
 type Ranking struct {
 	CandidateID uuid.UUID `gorm:"not null"`
-	rank        int       `gorm:"not null"`
+	Rank        int       `gorm:"not null"`
 	VoteID      string    `gorm:"not null"`
-	Vote        Vote      `gorm:"foreignKey:VoteID`
+	Vote        Vote      `gorm:"foreignKey:VoteID"`
 	Candidate   Candidate `gorm:"foreignKey:CandidateID"`
 }

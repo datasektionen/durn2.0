@@ -56,8 +56,8 @@ func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 	dbConn := db.TakeDB()
 	defer db.ReleaseDB()
 
-	var voters []models.Voter
 	var validVoters []db.ValidVoter
+	voters := []models.Voter{}
 
 	if result := dbConn.Find(&validVoters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())

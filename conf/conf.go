@@ -24,7 +24,7 @@ type Configuration struct {
 func readEnvRequired(varName string) string {
 	val, precent := os.LookupEnv(varName)
 	if !precent {
-		rl.Fatal(context.TODO(), fmt.Sprintf("panic: Env var '%s' not set", varName))
+		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' not set", varName))
 		panic("exiting")
 	}
 	return val
@@ -45,7 +45,7 @@ func readEnvInteger(varName string, fallback int) int {
 	}
 	num, err := strconv.Atoi(val)
 	if err != nil {
-		rl.Fatal(context.TODO(), fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
+		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
 		panic("exiting")
 	}
 	return num
@@ -61,7 +61,7 @@ func readEnvBoolean(varName string, fallback bool) bool {
 
 func ReadConfiguration() Configuration {
 	if err := dotenv.Load(); err != nil {
-		rl.Info(context.TODO(), "No .env found")
+		rl.Info(context.Background(), "No .env found")
 	}
 
 	return Configuration{

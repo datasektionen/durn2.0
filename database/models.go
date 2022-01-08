@@ -41,4 +41,13 @@ type Vote struct {
 	VoteTime   time.Time `gorm:"not null"`
 	ElectionID uuid.UUID `gorm:"not null"`
 	Election   Election  `gorm:"foreignKey:ElectionID"`
+	Rankings   []Ranking
+}
+
+type Ranking struct {
+	CandidateID uuid.UUID `gorm:"not null"`
+	rank        int       `gorm:"not null"`
+	VoteID      string    `gorm:"not null"`
+	Vote        Vote      `gorm:"foreignKey:VoteID`
+	Candidate   Candidate `gorm:"foreignKey:CandidateID"`
 }

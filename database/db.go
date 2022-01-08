@@ -33,6 +33,7 @@ func CreateDBConnection() error {
 	database.AutoMigrate(&Candidate{})
 	database.AutoMigrate(&CastedVote{})
 	database.AutoMigrate(&Vote{})
+	database.AutoMigrate(&Ranking{})
 
 	db = database
 	return nil

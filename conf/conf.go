@@ -31,40 +31,44 @@ func readEnvRequired(varName string) string {
 }
 
 func readEnvFallback(varName string, fallback string) string {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		return fallback
 	}
 	return val
 }
 
 func readEnvInteger(varName string, fallback int) int {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		return fallback
 	}
 	num, err := strconv.Atoi(val)
 	if err != nil {
-		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
+		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' could not be parsed as integer", varName))
 		panic("exiting")
 	}
 	return num
 }
 
 func readEnvBoolean(varName string, fallback bool) bool {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		return fallback
 	}
-	return val == "true"
+	bool, err := strconv.ParseBool(val)
+	if err != nil {
+		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' could not be parsed as boolean", varName))
+	}
+	return bool
 }
 
 var conf Configuration
-var intialized bool = false
+var initialized bool = false
 
 func GetConfiguration() Configuration {
 
-	if intialized {
+	if initialized {
 		return conf
 	}
 
@@ -83,6 +87,6 @@ func GetConfiguration() Configuration {
 		SkipAuth:    readEnvBoolean("SKIP_AUTH", false),
 	}
 
-	intialized = true
+	initialized = true
 	return conf
 }

@@ -21,8 +21,8 @@ type Configuration struct {
 }
 
 func readEnvRequired(varName string) string {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		log.Fatal(fmt.Sprintf("panic: Env var '%s' not set", varName))
 	}
 	return val
@@ -41,11 +41,11 @@ func readEnvInteger(varName string, fallback int) int {
 	if !present {
 		return fallback
 	}
-	num, err := strconv.Atoi(val)
+	parsed, err := strconv.Atoi(val)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("panic: Env var '%s' could not be parsed as integer", varName))
 	}
-	return num
+	return parsed
 }
 
 func readEnvBoolean(varName string, fallback bool) bool {
@@ -53,22 +53,20 @@ func readEnvBoolean(varName string, fallback bool) bool {
 	if !present {
 		return fallback
 	}
-	bool, err := strconv.ParseBool(val)
+	parsed, err := strconv.ParseBool(val)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("panic: Env var '%s' could not be parsed as boolean", varName))
 	}
-	return bool
+	return parsed
 }
 
 var conf Configuration
 var initialized = false
 
 func GetConfiguration() Configuration {
-
 	if initialized {
 		return conf
 	}
-
 	if err := dotenv.Load(); err != nil {
 		log.Println("No .env found")
 	}
@@ -83,7 +81,6 @@ func GetConfiguration() Configuration {
 		DBName:      readEnvRequired("DB_NAME"),
 		SkipAuth:    readEnvBoolean("SKIP_AUTH", false),
 	}
-
 	initialized = true
 	return conf
 }

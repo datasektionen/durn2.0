@@ -35,9 +35,10 @@ func main() {
 	}
 
 	if err := db.CreateDBConnection(); err != nil {
-		rl.Fatal(context.Background(), "Error creating db connection")
-		rl.Fatal(context.Background(), err.Error())
-		panic("exiting")
+		log.Fatal(
+			"Error creating db connection:\n",
+			err.Error(),
+		)
 	}
 
 	r := mux.NewRouter()

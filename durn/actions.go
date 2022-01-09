@@ -4,6 +4,8 @@ import (
 	"context"
 	"regexp"
 
+	"gorm.io/gorm/clause"
+
 	db "durn2.0/database"
 	"durn2.0/models"
 	rl "durn2.0/requestLog"
@@ -18,25 +20,8 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 	defer db.ReleaseDB()
 
 	mailRegex := "[^@]+@kth\\.se"
-	votersToInsert := []db.ValidVoter{}
-	currentVoters := []db.ValidVoter{}
+	var votersToInsert []db.ValidVoter
 	failedVoters := []models.Voter{}
-
-	if result := dbConn.Find(&currentVoters); result.Error != nil {
-		rl.Warning(ctx, result.Error.Error())
-		return nil, util.ServerError("An internal server error occurred")
-	}
-
-	existingVoters := make(map[models.Voter]bool)
-
-	for _, voter := range currentVoters {
-		existingVoters[models.Voter(voter.Email)] = true
-	}
-
-	voterExists := func(email models.Voter) bool {
-		_, c := existingVoters[email]
-		return c
-	}
 
 	for _, voter := range voters {
 		matches, err := regexp.MatchString(mailRegex, string(voter))
@@ -47,7 +32,7 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 
 		if !matches {
 			failedVoters = append(failedVoters, voter)
-		} else if !voterExists(voter) {
+		} else {
 			votersToInsert = append(votersToInsert, db.ValidVoter{
 				Email: string(voter),
 			})
@@ -55,9 +40,11 @@ func AddValidVoters(ctx context.Context, voters []models.Voter) ([]models.Voter,
 	}
 
 	if len(votersToInsert) > 0 {
-		if result := dbConn.Create(&votersToInsert); result.Error != nil {
+		if result := dbConn.Clauses(
+			clause.OnConflict{DoNothing: true},
+		).Create(&votersToInsert); result.Error != nil {
 			rl.Warning(ctx, result.Error.Error())
-			return nil, util.ServerError("An internal server error occurred")
+			return nil, util.ServerError("An internal server error occurred when inserting into database")
 		}
 	}
 
@@ -69,12 +56,12 @@ func GetAllValidVoters(ctx context.Context) ([]models.Voter, error) {
 	dbConn := db.TakeDB()
 	defer db.ReleaseDB()
 
-	var voters []models.Voter
 	var validVoters []db.ValidVoter
+	voters := []models.Voter{}
 
 	if result := dbConn.Find(&validVoters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
-		return nil, util.ServerError("An internal server error occurred")
+		return nil, util.ServerError("An internal server error occurred when fetching from database")
 	}
 
 	for _, voter := range validVoters {
@@ -91,7 +78,7 @@ func DeleteValidVoters(ctx context.Context, voters []models.Voter) error {
 
 	if result := dbConn.Delete(&validVoters, voters); result.Error != nil {
 		rl.Warning(ctx, result.Error.Error())
-		return util.ServerError("An internal server error occurred")
+		return util.ServerError("An internal server error occurred when removing from database")
 	}
 
 	return nil

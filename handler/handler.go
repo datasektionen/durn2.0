@@ -249,7 +249,7 @@ func RemoveValidVoters(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// GetLogs returns a list of all voting events that has occurred in the
+// GetLogs returns a list of all voting events that have occurred in the
 // system, in order to make verifying a proper voting procedure easier
 // Requires admin privileges
 // Endpoint: GET /api/history

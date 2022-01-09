@@ -1,12 +1,11 @@
 package conf
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
-	rl "durn2.0/requestLog"
 	dotenv "github.com/joho/godotenv"
 )
 
@@ -22,54 +21,54 @@ type Configuration struct {
 }
 
 func readEnvRequired(varName string) string {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
-		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' not set", varName))
-		panic("exiting")
+	val, present := os.LookupEnv(varName)
+	if !present {
+		log.Fatal(fmt.Sprintf("panic: Env var '%s' not set", varName))
 	}
 	return val
 }
 
 func readEnvFallback(varName string, fallback string) string {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		return fallback
 	}
 	return val
 }
 
 func readEnvInteger(varName string, fallback int) int {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		return fallback
 	}
-	num, err := strconv.Atoi(val)
+	parsed, err := strconv.Atoi(val)
 	if err != nil {
-		rl.Fatal(context.Background(), fmt.Sprintf("panic: Env var '%s' is not an integer", varName))
-		panic("exiting")
+		log.Fatal(fmt.Sprintf("panic: Env var '%s' could not be parsed as integer", varName))
 	}
-	return num
+	return parsed
 }
 
 func readEnvBoolean(varName string, fallback bool) bool {
-	val, precent := os.LookupEnv(varName)
-	if !precent {
+	val, present := os.LookupEnv(varName)
+	if !present {
 		return fallback
 	}
-	return val == "true"
+	parsed, err := strconv.ParseBool(val)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("panic: Env var '%s' could not be parsed as boolean", varName))
+	}
+	return parsed
 }
 
 var conf Configuration
-var intialized bool = false
+var initialized = false
 
 func GetConfiguration() Configuration {
-
-	if intialized {
+	if initialized {
 		return conf
 	}
-
 	if err := dotenv.Load(); err != nil {
-		rl.Info(context.Background(), "No .env found")
+		log.Println("No .env found")
 	}
 
 	conf = Configuration{
@@ -82,7 +81,6 @@ func GetConfiguration() Configuration {
 		DBName:      readEnvRequired("DB_NAME"),
 		SkipAuth:    readEnvBoolean("SKIP_AUTH", false),
 	}
-
-	intialized = true
+	initialized = true
 	return conf
 }
